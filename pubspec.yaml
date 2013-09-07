@@ -1,0 +1,7 @@
+name: everyday_dart
+version: 0.0.1
+description: Dart for everyday.
+dependencies:
+  logging: any
+  polymer: any
+  route: any

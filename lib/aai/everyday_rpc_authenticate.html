@@ -1,0 +1,27 @@
+<link rel='import' href='../rpc/everyday_rpc_call.html'>
+
+<polymer-element name='everyday-rpc-authenticate' extends='div' 
+  attributes='invoker endpoint token auto timeout on-everyday-error on-everyday-success on-everyday-complete test'>
+<template>
+  <style>
+    @host {
+      * {
+      display: none !important;
+      }
+    }
+  </style>
+  
+  <everyday-rpc-call 
+    id='call'
+    invoker='{{invoker}}'
+    auto='{{false}}'
+    endpoint='{{endpoint}}'
+    invocation-type='{{INVOCATION_TYPE}}'>
+    positional-parameters='{{positionalParameters}}'  
+    on-everyday-success='{{callSucceeded}}'
+    on-everyday-error='{{callFailed}}'
+  </everyday-rpc-call>
+
+  </template>
+  <script type='application/dart' src='everyday_rpc_authenticate.dart'></script>
+  </polymer-element>

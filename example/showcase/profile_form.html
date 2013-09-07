@@ -1,0 +1,18 @@
+<polymer-element name='profile-form' extends='form' attributes='profile'>
+<template>
+
+    <fieldset>
+      <legend>profile</legend>
+       <label for='fullName'>your full name</label>
+              <input type='text' on-change='changed' value='{{profile.fullName}}' 
+              name='fullName'>
+
+              <label for='bornOn'>your date of birth</label>
+              <input type='date' on-change='changed' value='{{profile.bornOn}}' 
+              name='bornOn'>
+    </fieldset>  
+
+     
+</template>
+<script type='application/dart' src='profile_form.dart'></script>
+</polymer-element>

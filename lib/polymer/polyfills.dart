@@ -32,7 +32,7 @@ abstract class CustomEventsMixin implements PolymerElement {
     return _customEventController;
   }
   
-  dispatchCustomEvent(type, detail){
+  dispatchCustomEvent(type, [detail]){
     var delegate = this.customEventHandlers['on-$type'];
     var event = new CustomEvent(type);
     customEventController.add(new CustomEvent_(event, detail,this));
@@ -48,7 +48,7 @@ abstract class CustomEventsMixin implements PolymerElement {
   
 }
 
-abstract class AsynchronousEventSourceMixin {
+abstract class AsynchronousEventsMixin {
   Map<String, dynamic> get customEventHandlers;
   Stream<CustomEvent> streamFor(type);
   

@@ -6,6 +6,7 @@
 <link rel='import' href='packages/everyday_dart/persistence/everyday_persistence.html'>
 <link rel='import' href='packages/everyday_dart/places/everyday_place_history.html'>
 <link rel='import' href='packages/everyday_dart/aai/everyday_rpc_authenticate.html'>
+<link rel='import' href='packages/everyday_dart/persistence/everyday_persistence_load.html'>
 <link rel='import' href='profile_form.html'>
 
  <polymer-element name='everyday-showcase' extends='div'>
@@ -74,7 +75,21 @@
   
   <everyday-place-history transformer='{{placesTransformer}}' place='{{place}}'>
   </everyday-place-history>
- 
+
+ <template if='{{online}}' bind>
+  <everyday-persistence-load
+     id='load-profile'
+     entity-manager='{{showcaseEntityManager}}'
+     entity-type='{{profileEntityType}}'
+     key='{{profileKey}}'
+     entity='{{profile}}'>
+  </everyday-persistence-load>
+  
+  <template if='{{profile}}' bind>
+    hello profile
+  </template>
+</template> 
+
   <template if='{{online}}'>
     <everyday-rpc-authenticate
       id='auth'

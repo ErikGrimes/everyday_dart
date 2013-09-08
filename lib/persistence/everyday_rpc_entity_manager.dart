@@ -56,7 +56,7 @@ class _EntityEntry {
   }
   
 }
-//TODO Make a ModelManagerMixin
+//TODO Make an EntityManagerMixin
 //TODO Support offline scenarios & synchronization
 //TODO Handle concurrency (lock-based & non-lockbased)
 @CustomTag('everyday-rpc-entity-manager')
@@ -126,9 +126,9 @@ implements EntityManager {
     return entry.save(timeout:timeout);
   }
   
-  _attach(Symbol type, Entity model){
-    var entry = new _EntityEntry(endpoint, convertSymbolToString(type), model,invoker);
-    _observedEntities[model] = entry;
+  _attach(Symbol type, Entity entity){
+    var entry = new _EntityEntry(endpoint, convertSymbolToString(type), entity,invoker);
+    _observedEntities[entity] = entry;
     return entry;
   }
   
@@ -151,13 +151,13 @@ implements EntityManager {
   }
   
   _unconfigure(){
-    _detachModels();
+    _detachEntities();
   }
   
-  _detachModels(){
+  _detachEntities(){
     //TODO Decide what to do with incomplete operations
-    _observedEntities.values.forEach((model){
-      model.detach();
+    _observedEntities.values.forEach((entity){
+      entity.detach();
     });
     _observedEntities.clear();
   }

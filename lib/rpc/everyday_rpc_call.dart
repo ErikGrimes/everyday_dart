@@ -6,7 +6,7 @@ import '../rpc/invoker.dart';
 import '../polymer/polyfills.dart';
 
 @CustomTag('everyday-rpc-call')
-class EverydayRpcCall extends PolymerElement with ObservableMixin, CustomEventsMixin, AsynchronousEventSourceMixin {
+class EverydayRpcCall extends PolymerElement with ObservableMixin, CustomEventsMixin, AsynchronousEventsMixin {
  
   Invoker invoker;
   

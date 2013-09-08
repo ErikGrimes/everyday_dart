@@ -9,7 +9,7 @@ import '../polymer/polyfills.dart';
 
 @CustomTag('everyday-rpc-authenticate')
 class EverydayRpcAuthenticate extends PolymerElement with 
-  ObservableMixin, AsynchronousEventSourceMixin, CustomEventsMixin {
+  ObservableMixin, AsynchronousEventsMixin, CustomEventsMixin {
   
   static const Symbol RESPONSE = const Symbol('response');
   
@@ -50,7 +50,8 @@ class EverydayRpcAuthenticate extends PolymerElement with
   }
   
   inserted(){
-    _configure();
+    print('inserted');
+    //_configure();
     _selfSub = this.changes.listen(_propertyChanged);
   }
   
@@ -74,7 +75,7 @@ class EverydayRpcAuthenticate extends PolymerElement with
   }
   
   _configure(){
-    _call.invoker = invoker;
+   // _call.invoker = invoker;
     _call.endpoint = endpoint;
     _call.method = 'signIn';
     _call.timeout = timeout;

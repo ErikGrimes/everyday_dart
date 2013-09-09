@@ -1,10 +1,26 @@
 import 'dart:async';
 import 'dart:html';
 import 'package:polymer/polymer.dart';
+import 'package:everyday_dart/polymer/polyfills.dart';
 import 'model.dart';
 
-@CustomTag('profile-form')
-class ProfileForm extends PolymerElement with ObservableMixin {
+@CustomTag('profile-editor')
+class ProfileEditor extends PolymerElement with ObservableMixin, CustomEventsMixin {
+  
+  Stream _onSave;
+  
+  get onEverydaySave => customEventHandlers['on-everyday-save'];
+  
+  set onEverydaySave(value){
+    customEventHandlers['on-everyday-save'] = value;
+  }
+  
+  Stream get onSave {
+    if(_onSave == null){
+      _onSave = streamFor('everyday-save');
+    }
+    return _onSave;
+  }
   
   @observable
   Profile profile; 
@@ -16,7 +32,7 @@ class ProfileForm extends PolymerElement with ObservableMixin {
   //  print('profile form inserted ${this.host}');
     //TODO Remove this hack once https://code.google.com/p/dart/issues/detail?id=12722 is fixed.
     _timer = new Timer.periodic(new Duration(seconds:5),(_){
-      this.dispatchEvent(new Event('change')); 
+      this.dispatchCustomEvent('everyday-save', profile);
     });
   }
   

@@ -7,7 +7,9 @@
 <link rel='import' href='packages/everyday_dart/places/everyday_place_history.html'>
 <link rel='import' href='packages/everyday_dart/aai/everyday_rpc_authenticate.html'>
 <link rel='import' href='packages/everyday_dart/persistence/everyday_persistence_load.html'>
-<link rel='import' href='profile_form.html'>
+<link rel='import' href='packages/everyday_dart/patch/everyday_patch_observer.html'>
+<link rel='import' href='packages/everyday_dart/persistence/everyday_persistence_persist.html'>
+<link rel='import' href='profile_editor.html'>
 
  <polymer-element name='everyday-showcase' extends='div'>
   <template bind>
@@ -77,18 +79,27 @@
   </everyday-place-history>
 
  <template if='{{online}}' bind>
+   <div>online</div>
   <everyday-persistence-load
      id='load-profile'
      entity-manager='{{showcaseEntityManager}}'
      entity-type='{{profileEntityType}}'
      key='{{profileKey}}'
+     on-everyday-success='{{profileLoaded}}'
      entity='{{profile}}'>
   </everyday-persistence-load>
   
-  <template if='{{profile}}' bind>
-    hello profile
-  </template>
+   <template id='profile-editor' if='{{profile}}'>
+      <everyday-persistence-persist
+        entity-manager='{{showcaseEntityManager}}'
+        entity='{{profile}}'
+        on-everyday-success='{{profilePersisted}}'
+        on-everyday-error='{{profileNotPersisted}}'>
+      </everyday-persistence-persist>
+      <profile-editor id='profile-editor' profile='{{profile}}' on-everyday-save='{{persistProfile}}'></profile-editor>
+   </template> 
 </template> 
+
 
   <template if='{{online}}'>
     <everyday-rpc-authenticate
@@ -102,6 +113,9 @@
       timeout='{{5000}}'>   
     </everyday-rpc-authenticate>
 </template>
+
+
+
 <!--  
     <template bind if='{{displayAccessPanel}}'>
       <everyday-showcase-access-panel></everyday-showcase-access-panel>

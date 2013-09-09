@@ -49,6 +49,8 @@ class EverydayShowcase extends PolymerElement with ObservableMixin {
   
   @observable
   var profileKey;
+  
+  List changesBuffer = new List();
 
   final PlacesTransformer placesTransformer = new PlacesTransformer([new ProfilesPlaceTransformer(), new ProfilePlaceTransformer()]);
   
@@ -88,13 +90,21 @@ class EverydayShowcase extends PolymerElement with ObservableMixin {
   } 
   
   profileLoaded(event,  detail, target){
+    _LOGGER.info('Profile loaded');
     profile = target.xtag.entity; 
-   // this.shadowRoot.query('#profile-form').model = profile;
     Observable.dirtyCheck();
   }
   
-  saveProfile(event, detail, target){
-    profilePersistence.persist();
+  persistProfile(event, detail, target){
+    _LOGGER.info('Persisting profile');
+  }
+  
+  profilePersisted(event, detail, target){
+    _LOGGER.info('Profile persisted');
+  }
+  
+  profileNotPersisted(event, detail, target){
+    _LOGGER.info('Profile not persisted');
   }
   
   socketError(event, detail, target){
@@ -118,7 +128,7 @@ class EverydayShowcase extends PolymerElement with ObservableMixin {
   setOnline(){
     _LOGGER.info('Server has come online');
     online = true;
-   // var loadProfile = this.query('#load-profile').xtag;
+   // print(this.shadowRoot.children);
    // loadProfile.entityManager = showcaseEntityManager;
     Observable.dirtyCheck();
   }

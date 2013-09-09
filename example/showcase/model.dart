@@ -4,7 +4,7 @@ import 'package:observe/observe.dart';
 import 'package:everyday_dart/persistence/entity_manager.dart';
 
 
-class Profile extends Object with ChangeNotifierMixin implements Entity {
+class Profile extends Object with ObservableMixin implements Entity {
   
   static const Symbol FULL_NAME = const Symbol('fullName');
   static const Symbol ADDRESS_AS = const Symbol('addressAs');
@@ -12,126 +12,68 @@ class Profile extends Object with ChangeNotifierMixin implements Entity {
   static const Symbol CONTACT_INFO = const Symbol('contactInfo');
   static const Symbol KEY = const Symbol('key');
   
-  int _key;
-  String _fullName;
-  String _addressAs;
-  String _bornOn;
-  ContactInfo _contactInfo;
+  @observable
+  int key;
   
-  Profile({key, fullName:'',addressAs:'', bornOn:'', contactInfo}):
-    _key = key,
-    _fullName = fullName,
-    _addressAs = addressAs,
-    _bornOn = bornOn {
-    _contactInfo = valueOrDefault(contactInfo, (){return new ContactInfo();});
-  }
+  @observable
+  String fullName;
   
-  get key => _key;
+  @observable
+  String addressAs;
   
-  set key(int value){
-    _key = this.notifyPropertyChange(KEY,_key,value);
-  }
+  @observable
+  String bornOn;
   
-  get fullName => _fullName;
+  @observable
+  ContactInfo contactInfo;
   
-  set fullName(String value) {
-    _fullName = this.notifyPropertyChange(FULL_NAME,_fullName,value);
-  }
-  
-  get addressAs => _addressAs;
-  
-  set addressAs(String value) {
-    _addressAs = this.notifyPropertyChange(ADDRESS_AS,_addressAs,value);
-  }
-  
-  get bornOn => _bornOn;
-  
-  set bornOn(String value) {
-    _bornOn = this.notifyPropertyChange(BORN_ON,_bornOn,value);
-  }
-  
-  toString(){
-    return super.toString();
+  Profile({this.key, this.fullName:'',this.addressAs:'', this.bornOn:'', contactInfo}){
+    contactInfo = valueOrDefault(contactInfo, (){return new ContactInfo();});
   }
   
 }
 
-class ContactInfo extends Object with ChangeNotifierMixin  {
+class ContactInfo extends Object with ObservableMixin  {
   
   static const Symbol PHONE = const Symbol('phone');
   static const Symbol EMAIL = const Symbol('email');
   static const Symbol MAILING_ADDRESS = const Symbol('mailingAddress');
 
-  String _phone; 
-  String _email;
-  Address _mailingAddress;
+  @observable
+  String phone;
   
-  ContactInfo({email:'', phone:'', mailingAddress}):
-    _email = email, 
-    _phone = phone {
-    _mailingAddress = valueOrDefault(mailingAddress,(){return new Address();});
+  @observable
+  String email;
+  
+  @observable
+  Address mailingAddress;
+  
+  ContactInfo({this.email:'', this.phone:'', mailingAddress}){
+    mailingAddress = valueOrDefault(mailingAddress,(){return new Address();});
   }
   
-  String get phone => _phone;
-  
-  set phone(String value){
-    _phone = this.notifyPropertyChange(PHONE, _phone, value);
-  }
-  
-  String get email => _email;
-  
-  set email(String value){
-    _email = this.notifyPropertyChange(EMAIL, _phone, value);
-  }
-  
-  Address get mailingAddress => _mailingAddress;
-  
-  set mailingAddress(Address value){
-    _mailingAddress = this.notifyPropertyChange(MAILING_ADDRESS, _phone, value);
-  }  
 }
 
-class Address extends Object with ChangeNotifierMixin  {
+class Address extends Object with ObservableMixin  {
   
   static const Symbol STREET_OR_BOX = const Symbol('streetOrBox');
   static const Symbol CITY = const Symbol('city');
   static const Symbol STATE_OR_REGION = const Symbol('stateOrRegion');
   static const Symbol POSTAL_CODE = const Symbol('postalCode');
   
-  String _streetOrBox;
-  String _city;
-  String _stateOrRegion;
-  String _postalCode;
+  @observable
+  String streetOrBox;
   
-  Address({streetOrBox:'',city:'', stateOrRegion:'', postalCode:''}): 
-    _streetOrBox = streetOrBox,
-    _city = city,
-    _stateOrRegion = stateOrRegion,
-    _postalCode=postalCode;
+  @observable
+  String city;
   
-  String get streetOrBox => _streetOrBox;
+  @observable
+  String stateOrRegion;
+
+  @observable
+  String postalCode;
   
-  set streetOrBox(String value){ 
-    _streetOrBox = this.notifyPropertyChange(STREET_OR_BOX, _streetOrBox, value);
-  }
-  
-  String get city => _city;
-  
-  set city(String value){ 
-    _city = this.notifyPropertyChange(CITY, _city, value);
-  }
-  
-  String get stateOrRegion => _stateOrRegion;
-  
-  set stateOrRegion(String value){ 
-    _stateOrRegion = this.notifyPropertyChange(STATE_OR_REGION, _stateOrRegion, value);
-  }
-  
-  String get postalCode => _postalCode;
-  
-  set postalCode(String value){ 
-    _postalCode = this.notifyPropertyChange(POSTAL_CODE, _postalCode, value);
-  }
+  Address({this.streetOrBox:'',this.city:'', this.stateOrRegion:'', this.postalCode:''});
   
 }
 

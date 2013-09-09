@@ -5,6 +5,7 @@ import 'package:everyday_dart/rpc/serialization.dart' as rpc;
 import 'package:everyday_dart/aai/serialization.dart' as aai;
 import 'package:everyday_dart/rpc/serialization_codec.dart';
 import 'package:serialization/serialization.dart';
+import 'model.dart';
 
 class EverydayShowcaseCodec extends Codec {
   Codec _codec;
@@ -12,6 +13,9 @@ class EverydayShowcaseCodec extends Codec {
     var ser = new Serialization();
     rpc.configure(ser);
     aai.configure(ser);
+    ser.addRule(new ProfileRule());
+    ser.addRule(new ContactInfoRule());
+    ser.addRule(new AddressRule());
     _codec = new SerializationCodec(ser).fuse(new JsonStringCodec());
   }
 
@@ -48,6 +52,27 @@ class EverydayShowcaseCodecMixin implements Codec<Object,String>{
   }
 
   Codec<String, Object> get inverted => _codec.inverted;
+}
+
+class ProfileRule extends CustomRule {
+  bool appliesTo(instance, Writer w) => instance.runtimeType == Profile;
+  getState(Profile instance) => [instance.addressAs, instance.bornOn, instance.fullName, instance.contactInfo];
+  create(state) => new Profile(addressAs:state[0], bornOn:state[1], fullName: state[2], contactInfo:state[3]);
+  setState(instance, List state) => {};
+}
+
+class ContactInfoRule extends CustomRule {
+  bool appliesTo(instance, Writer w) => instance.runtimeType == ContactInfo;
+  getState(ContactInfo instance) => [instance.phone, instance.email, instance.mailingAddress];
+  create(state) => new ContactInfo(phone:state[0], email:state[1], mailingAddress: state[2]);
+  setState(instance, List state) => {};
+}
+
+class AddressRule extends CustomRule {
+  bool appliesTo(instance, Writer w) => instance.runtimeType == Address;
+  getState(Address instance) => [instance.streetOrBox, instance.city, instance.stateOrRegion, instance.postalCode];
+  create(state) => new Address(streetOrBox:state[0], city:state[1], stateOrRegion: state[2], postalCode:state[3]);
+  setState(instance, List state) => {};
 }
 
 

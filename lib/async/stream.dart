@@ -6,6 +6,7 @@ Future pipeStream(Stream src, StreamSink dst){
   var completer = new Completer();
   src.listen((data){
     try {
+      print('pipeStream adding $data');
       dst.add(data);
     }catch(error){
       completer.completeError(error);

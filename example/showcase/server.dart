@@ -7,18 +7,26 @@ import 'package:everyday_dart/rpc/server.dart';
 import 'package:everyday_dart/async/stream.dart';
 import 'package:logging/logging.dart';
 import 'package:everyday_dart/aai/aai_service.dart';
+import 'package:postgresql/postgresql_pool.dart';
+import 'package:everyday_dart/persistence/entity_manager_service.dart';
+import 'persistence_handlers.dart';
 
 import 'shared.dart';
 
 final Logger _logger = new Logger('server');
+
+Pool _pool;
 
 main(){
   runZonedExperimental(() {
    Logger.root.level = Level.ALL;
     Logger.root.onRecord.listen(_logToConsole);
     _logger.info('Server started');
-    _initializePersistence()
-      .then((_) =>  _bindServerSocket())
+    _initializePersistence('postgres://dev:dev@dev.local:5432/dev',3,5)
+      .then((pool)  { 
+        _pool = pool;
+        return _bindServerSocket();
+        })
         .then((_) {
           _logger.info('Server socket bound');
           _listenForRequests(_);});
@@ -54,8 +62,17 @@ void _addCorsHeaders(HttpResponse res) {
   res.headers.add("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
 }
 
-_initializePersistence(){
-  return new Future.value(true);
+_initializePersistence(url, min, max){
+  var completer = new Completer();
+  var pool = new Pool(url, min: min, max: max);
+  //TODO Pool is starting event when connections fails
+  pool.start().then((v){
+    _logger.info('Persistence initialized...');
+    completer.complete(pool);
+  }).catchError((e){
+    completer.completeError(e);
+  });
+  return completer.future;
 }
 
 _logToConsole(LogRecord lr){
@@ -69,13 +86,19 @@ _logToConsole(LogRecord lr){
 
 _handleNewClient(WebSocket socket){
   
-  //TODO Explore approaches to scaling (forwarding messages, running each endpoint on it's own server socket).
-  
   var router = new CallRouter();
   router.registerEndpoint('aai', new DefaultAAIService());
   
-  var handler = new MessageHandler(router);
   var codec = new EverydayShowcaseCodec();
+  
+  var handlers = {'Profile': new ProfileEntityHandler(codec)};
+  
+  var entityManager = new PostgresqlEntityManagerService(_pool, handlers);
+  
+  router.registerEndpoint('entity-manager', entityManager);
+  
+  var handler = new MessageHandler(router);
+
 
   //TODO Change this when Stream.pipe works with websockets
   

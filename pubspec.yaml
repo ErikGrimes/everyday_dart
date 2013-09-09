@@ -4,4 +4,5 @@ description: Dart for everyday.
 dependencies:
   logging: any
   polymer: any
+  postgresql: any
   route: any

@@ -162,6 +162,7 @@ class JsonStringEncodeSink extends ChunkedConversionSink {
     if(_done){
       throw new StateError("Only one call to add allowed");
     }
+    print('JsonStrinkEncodeSink encoding $chunk');
     _sink.add(JSON.encode(chunk));
     _sink.close();
   }
@@ -169,3 +170,4 @@ class JsonStringEncodeSink extends ChunkedConversionSink {
   void close() {}
   
 }
+

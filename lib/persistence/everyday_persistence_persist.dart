@@ -93,6 +93,7 @@ class EverydayPersistencePersist extends PolymerElement with
     }).catchError((error){
       submit.addAll(_unsaved);
       _unsaved = submit;
+      _pendingSave = null;
       this.dispatchError(error);
     });
   }

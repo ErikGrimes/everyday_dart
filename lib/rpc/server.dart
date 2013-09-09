@@ -76,7 +76,7 @@ class CallRouter {
    if(endpoint != null){
      return endpoint.apply(call);
    }else {
-     throw new CallError(call.callId, 'No such endpoint ${call.endpoint}');
+     return new Future.value(new CallError(call.callId, 'No such endpoint ${call.endpoint}'));
    }
   }
   

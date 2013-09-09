@@ -113,9 +113,10 @@ class EverydayShowcase extends PolymerElement with ObservableMixin {
       profileObserver = this.shadowRoot.query('#profile-observer').xtag;
     }
     profileChanged = profileBuffer;
-    profileBuffer = [];
-    profilePersist.changed = profileObserver.changed;
-    profileObserver.changed = [];
+    profileBuffer = new List();
+    print(identical(profilePersist.changed,profileChanged));
+    profilePersist.changed = profileChanged;
+    profileObserver.changed = profileBuffer;
     Observable.dirtyCheck();
   }
   

@@ -108,11 +108,16 @@ class EverydayRpc extends PolymerElement with ObservableMixin implements Invoker
   _configure(){ 
     if(_allAttributesSet()){ 
       var inbound = socket.onMessage.transform(new _MessageEventDecoder()).transform(codec.decoder).handleError((error){
-       //TODO Determine what should happen here.
+       print('error $error');
       });
+      
+      //TODO Ask about this grossness
+      var transformed = new StreamController.broadcast();
+      
+      pipeStream(inbound, transformed);
          
-      _socketSubs.add(inbound.where(((event){return event is CallResult;})).listen(_onCallResult));
-      _socketSubs.add(inbound.where(((event){return event is CallError;})).listen(_onCallError));
+      _socketSubs.add(transformed.stream.where(((event){return event is CallResult;})).listen(_onCallResult));
+      _socketSubs.add(transformed.stream.where(((event){return event is CallError;})).listen(_onCallError));
     }
 
   }
@@ -168,6 +173,7 @@ class _MessageEventDecoderSink extends ChunkedConversionSink {
   _MessageEventDecoderSink(this._sink);
   
   void add(chunk) {
+    print('adding chunk $chunk');
     if(_closed) throw new StateError('Only one chunk may be added');
     _sink.add(chunk.detail);
     _closed = true;

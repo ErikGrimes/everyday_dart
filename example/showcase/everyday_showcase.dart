@@ -13,7 +13,7 @@ class EverydayShowcase extends PolymerElement with ObservableMixin {
   
   static final Logger _LOGGER = new Logger('everyday.showcase.everyday_showcase');
   
-  Type profileEntityType = Profile;
+  Type profileType = Profile;
   
   @observable
   EntityManager showcaseEntityManager;
@@ -28,7 +28,10 @@ class EverydayShowcase extends PolymerElement with ObservableMixin {
   var showcaseRpc;
   
   @observable
-  var profilePersistence;
+  var profilePersist;
+  
+  @observable
+  var profileObserver;
   
   @observable
   Entity profile;
@@ -50,8 +53,11 @@ class EverydayShowcase extends PolymerElement with ObservableMixin {
   @observable
   var profileKey;
   
-  List changesBuffer = new List();
+  @observable
+  List profileBuffer = [];
 
+  List profileChanged = [];
+  
   final PlacesTransformer placesTransformer = new PlacesTransformer([new ProfilesPlaceTransformer(), new ProfilePlaceTransformer()]);
   
   inserted(){
@@ -92,11 +98,25 @@ class EverydayShowcase extends PolymerElement with ObservableMixin {
   profileLoaded(event,  detail, target){
     _LOGGER.info('Profile loaded');
     profile = target.xtag.entity; 
+   // profilePersist = this.shadowRoot.query('#profile-persist').xtag;
+   // profileObserver = this.shadowRoot.query('#profile-observer').xtag;
     Observable.dirtyCheck();
   }
   
   persistProfile(event, detail, target){
     _LOGGER.info('Persisting profile');
+
+    if(profilePersist == null){
+      profilePersist = this.shadowRoot.query('#profile-persist').xtag;
+    }
+    if(profileObserver == null){
+      profileObserver = this.shadowRoot.query('#profile-observer').xtag;
+    }
+    profileChanged = profileBuffer;
+    profileBuffer = [];
+    profilePersist.changed = profileObserver.changed;
+    profileObserver.changed = [];
+    Observable.dirtyCheck();
   }
   
   profilePersisted(event, detail, target){

@@ -78,29 +78,36 @@
   <everyday-place-history transformer='{{placesTransformer}}' place='{{place}}'>
   </everyday-place-history>
 
- <template if='{{online}}' bind>
-   <div>online</div>
-  <everyday-persistence-load
-     id='load-profile'
+  <template if='{{online}}' bind>
+    <div>online</div>
+    <everyday-persistence-load
+     id='profile-load'
      entity-manager='{{showcaseEntityManager}}'
-     entity-type='{{profileEntityType}}'
+     entity-type='{{profileType}}'
      key='{{profileKey}}'
      on-everyday-success='{{profileLoaded}}'
      entity='{{profile}}'>
-  </everyday-persistence-load>
+    </everyday-persistence-load>
   
-   <template id='profile-editor' if='{{profile}}'>
-      <everyday-persistence-persist
+    <template id='profile-editor' if='{{profile}}'>
+     <everyday-patch-observer 
+      id='profile-observer'
+      observe='{{profile}}'
+      changed='{{profileBuffer}}'>
+     </everyday-patch-observer>
+     <everyday-persistence-persist
+        id='profile-persist'
         entity-manager='{{showcaseEntityManager}}'
-        entity='{{profile}}'
+        entity-key='{{profileKey}}'
+        entity-type='{{profileType}}'
+        changed='{{profileChanged}}'
         on-everyday-success='{{profilePersisted}}'
         on-everyday-error='{{profileNotPersisted}}'>
       </everyday-persistence-persist>
       <profile-editor id='profile-editor' profile='{{profile}}' on-everyday-save='{{persistProfile}}'></profile-editor>
-   </template> 
-</template> 
-
-
+    </template> 
+  </template> 
+  
   <template if='{{online}}'>
     <everyday-rpc-authenticate
       id='auth'
@@ -113,26 +120,7 @@
       timeout='{{5000}}'>   
     </everyday-rpc-authenticate>
 </template>
-
-
-
-<!--  
-    <template bind if='{{displayAccessPanel}}'>
-      <everyday-showcase-access-panel></everyday-showcase-access-panel>
-    </template>    
-  
-   <template if='{{isProfilePlace}}'>
-      <everyday-persistence
-        id='profile-persistence'
-        entity-type='{{profileEntityType}}' 
-        entity-manager='{{showcaseEntityManager}}'
-        on-everyday-load_='{{profileLoaded}}'>
-      </everyday-persistence>
-  
-    <template id='profile-form' if='{{profile}}'>
-      <profile-form profile='{{profile}}' on-change='saveProfile'></profile-form>   
-    </template> 
- -->   
+ 
     
   </template>
 

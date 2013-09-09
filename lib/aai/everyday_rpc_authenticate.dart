@@ -51,7 +51,7 @@ class EverydayRpcAuthenticate extends PolymerElement with
   
   inserted(){
     print('inserted');
-    //_configure();
+    _configure();
     _selfSub = this.changes.listen(_propertyChanged);
   }
   
@@ -75,7 +75,7 @@ class EverydayRpcAuthenticate extends PolymerElement with
   }
   
   _configure(){
-   // _call.invoker = invoker;
+    _call.invoker = invoker;
     _call.endpoint = endpoint;
     _call.method = 'signIn';
     _call.timeout = timeout;
@@ -115,6 +115,10 @@ class EverydayRpcAuthenticate extends PolymerElement with
   
   callFailed(event, detail, target){
     this.dispatchError(detail);
+  }
+  
+  set onEverydaySuccess(value){
+    super.onEverydaySuccess = value;
   }
   
   set onEverydayError(value){

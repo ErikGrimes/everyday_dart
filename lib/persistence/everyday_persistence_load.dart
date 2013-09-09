@@ -22,17 +22,15 @@ class EverydayPersistenceLoad extends PolymerElement with ChangeNotifierMixin, C
   EntityManager _entityManager;
   Map _subs = {};
   
-  int get modelKey => _entityKey;
+  int get entityKey => _entityKey;
   
-  set modelKey(var value){
-    _detachEntity();
+  set entityKey(var value){
     _entityKey = this.notifyPropertyChange(ENTITY_KEY, _entityKey, value);
   }
   
   Type get entityType => _entityType;
   
   set entityType(Type value){
-    _detachEntity();
     _entityType = this.notifyPropertyChange(ENTITY_TYPE, _entityType, value);
   }
   
@@ -41,17 +39,16 @@ class EverydayPersistenceLoad extends PolymerElement with ChangeNotifierMixin, C
   EntityManager get entityManager => _entityManager;
   
   set entityManager(EntityManager value){
-    _detachEntity();
     _entityManager = this.notifyPropertyChange(ENTITY_MANAGER, _entityManager, value);
   }
   
   inserted(){
+    print('everyday-persistence-load inserted');
     _configure(); 
     _selfSub = this.changes.listen(_propertyChanged);
   }
   
   removed(){
-    _detachEntity();
     _selfSub.cancel();
   }
   
@@ -71,7 +68,6 @@ class EverydayPersistenceLoad extends PolymerElement with ChangeNotifierMixin, C
   }
   
   _unconfigure(){
-    _detachEntity();
   }
   
   _configure(){
@@ -97,13 +93,10 @@ class EverydayPersistenceLoad extends PolymerElement with ChangeNotifierMixin, C
     }
   }
   
-  _detachEntity(){
-    if(_entity != null && _entityManager != null){
-      _entityManager.detach(_entity);
-      _entity = null;
-    }
-  }
-  
   get _requiredAttributesSet => entityManager != null && entityType != null;
+  
+  set onEverydaySuccess(value){
+    super.onEverydaySuccess = value;
+  }
   
 }

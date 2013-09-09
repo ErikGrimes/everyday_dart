@@ -1,7 +1,8 @@
-library everyday.model.entity_manager;
+library everyday.persistence.entity_manager;
 
 import 'dart:async';
 import 'package:observe/observe.dart';
+import '../patch/patch.dart';
 
 abstract class Entity implements Observable {
   var key;
@@ -13,8 +14,6 @@ abstract class EntityManager {
   
   Future<Stream> namedQuery(String name, Type type, Map params, {Duration timeout});
   
-  Future<Entity> save(Entity model, {Duration timeout});
-  
-  detach(Entity model);
-  
+  Future<Entity> persist(Type type, var key, List<ObjectPatchRecord> changes, {Duration timeout});
+   
 }

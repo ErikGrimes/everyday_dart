@@ -47,7 +47,9 @@ class IsolateSocket extends Stream implements StreamSink {
     _controller.add(message);
   }
 }
-
+// Copyright (c) 2013, the Everyday Dart project authors.  Please see the AUTHORS 
+// file for details. All rights reserved. Use of this source code is licenced 
+// under the Apache License, Version 2.0.  See the LICENSE file for details.
 
 abstract class IsolateMainFactory {
     Future create(Future terminate);
@@ -142,9 +144,11 @@ _isolateMain(){
           throw new IsolateAbortedException();
         }
       });
-      done.whenComplete((){
-        graceful.complete();
-      });
+      if(done != null){
+        done.whenComplete((){
+          graceful.complete();
+        });
+      }
     }else if (message is IsolateMainFactory){
       done = message.create(die);
     }

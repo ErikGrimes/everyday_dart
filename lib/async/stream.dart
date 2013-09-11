@@ -25,3 +25,20 @@ Future pipeStream(Stream src, StreamSink dst){
   });
   return completer.future;
 }
+
+
+class InsatiableStreamConsumer implements StreamConsumer {
+  
+  StreamConsumer _target;
+  
+  InsatiableStreamConsumer(this._target);
+  
+  Future addStream(Stream stream) {
+    _target.addStream(stream);
+    return new Completer().future;
+  }
+
+  Future close() {
+    
+  }
+}

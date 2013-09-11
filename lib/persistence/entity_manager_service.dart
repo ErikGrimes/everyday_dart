@@ -11,13 +11,15 @@ import '../patch/patch.dart';
 
 import 'dart:async';
 
+const Duration DEFAULT_TIMEOUT = const Duration(seconds:1);
+
 abstract class PostgresqlEntityHandler {
   
-  Future<List<Entity>> findByKey(List keys, Connection connection, {Duration timeout});
+  Future<List<Entity>> findByKey(List keys, Connection connection, {Duration timeout: DEFAULT_TIMEOUT});
 
-  Future namedQuery(String name, Map params, Connection connection, {Duration timeout});
+  Future namedQuery(String name, Map params, Connection connection, {Duration timeout: DEFAULT_TIMEOUT});
 
-  Future persist(var key, List<ObjectPatchRecord> changes, Connection connection, {Duration timeout});
+  Future persist(var key, List<ObjectPatchRecord> changes, Connection connection, {Duration timeout: DEFAULT_TIMEOUT});
   
 }
 
@@ -29,28 +31,61 @@ class PostgresqlEntityManagerService implements EntityManager {
   
   PostgresqlEntityManagerService(this._pool, this._handlers);
   
-  Future<List<Entity>> findByKey(String type, List keys, {Duration timeout}) {
-    var handler = [type];
+  Future<List<Entity>> findByKey(String type, List keys, {Duration timeout: DEFAULT_TIMEOUT}) {
+    var completer = new Completer();
+    var handler = _handlers[type];
     if(handler == null){
-      return new Future.error(new ArgumentError('Unknown type $type'));
+      completer.completeError(new ArgumentError('Unknown type $type'));
     }
-    return handler.findByKey(keys, timeout:timeout);
+
+    _pool.connect(timeout.inMilliseconds).then((connection){
+       handler.findByKey(keys, connection, timeout: timeout);}).then((key)
+           {
+              completer.complete(key);         
+           }).catchError((error){
+        completer.completeError(error);
+      }).catchError((error) {
+        completer.completeError(error);
+      });
+    return completer.future;
   }
 
-  Future namedQuery(String name, String type, Map params, {Duration timeout}) {
-    var handler = [type];
+  Future namedQuery(String name, String type, Map params, {Duration timeout: DEFAULT_TIMEOUT}) {
+    var completer = new Completer();
+    var handler = _handlers[type];
     if(handler == null){
-      return new Future.error(new ArgumentError('Unknown type $type'));
+      completer.completeError(new ArgumentError('Unknown type $type'));
     }
-    return handler.namedQuery(params, timeout:timeout);
+
+    _pool.connect(timeout.inMilliseconds).then((connection){
+       handler.namedQuery(name, params, connection, timeout: timeout);}).then((key)
+           {
+              completer.complete(key);         
+           }).catchError((error){
+        completer.completeError(error);
+      }).catchError((error) {
+        completer.completeError(error);
+      });
+    return completer.future;
   }
 
-  Future persist(String type, key, List<ObjectPatchRecord> changes, {Duration timeout}) {
-    var handler = [type];
+  Future persist(String type, key, List<ObjectPatchRecord> changes, {Duration timeout: DEFAULT_TIMEOUT}) {
+    var completer = new Completer();
+    var handler = _handlers[type];
     if(handler == null){
-      return new Future.error(new ArgumentError('Unknown type $type'));
+      completer.completeError(new ArgumentError('Unknown type $type'));
     }
-    return handler.persist(key, changes, timeout:timeout);
+
+    _pool.connect(timeout.inMilliseconds).then((connection){
+       handler.persist(key, changes, connection, timeout: timeout);}).then((key)
+           {
+              completer.complete(key);         
+           }).catchError((error){
+        completer.completeError(error);
+      }).catchError((error) {
+        completer.completeError(error);
+      });
+    return completer.future;
   }
 }
 

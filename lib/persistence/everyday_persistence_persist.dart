@@ -5,9 +5,10 @@
 library everyday.patch.everyday_patch_observer;
 
 import 'dart:async';
+import 'dart:mirrors';
 import 'package:polymer/polymer.dart';
+import '../mirrors/mirrors.dart';
 import '../polymer/polyfills.dart';
-import '../patch/patch.dart';
 import 'entity_manager.dart';
 
 @CustomTag('everyday-persistence-persist')
@@ -38,7 +39,7 @@ class EverydayPersistencePersist extends PolymerElement with
   
   List _unsaved = [];
   
-  Future _pendingSave;
+  Future _pending;
   
   bool _changedWhilePending = false;
   
@@ -60,20 +61,20 @@ class EverydayPersistencePersist extends PolymerElement with
   
   go(){
     if(_attributesSet){
-      if(_pendingSave != null){
+      if(_pending != null){
         _changedWhilePending = true;
       }else {
-        _save();
+        _persist();
       }
     }
   }
   
   _changed(){
     _unsaved.addAll(changed);
-    if(_pendingSave != null){
+    if(_pending != null){
       _changedWhilePending = true;
     }else {
-      _save();
+      _persist();
     }
   }
   
@@ -81,23 +82,23 @@ class EverydayPersistencePersist extends PolymerElement with
     return cr.field == CHANGED;
   }
   
-  _save(){
+  _persist(){
     var submit = _unsaved;
     _unsaved = new List();
-    _pendingSave = entityManager.persist(entityType, entityKey, submit);
+    _pending = entityManager.persist(convertSymbolToString(reflectClass(entityType).simpleName), entityKey, submit);
     
-    _pendingSave.then((_){
+    _pending.then((_){
       if(_changedWhilePending){
         _changedWhilePending = false;
-        _save();
+        _persist();
       }else {
-        _pendingSave = null;
+        _pending = null;
       }
       this.dispatchSuccess(_);
     }).catchError((error){
       submit.addAll(_unsaved);
       _unsaved = submit;
-      _pendingSave = null;
+      _pending = null;
       this.dispatchError(error);
     });
   }

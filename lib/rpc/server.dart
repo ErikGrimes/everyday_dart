@@ -28,6 +28,7 @@ class MessageHandler extends Stream<Message> implements StreamSink<Message> {
   
 
   void add(event) {
+    print('add $event');
     if(event is Call){
       _handleCall(event);
     }
@@ -43,6 +44,7 @@ class MessageHandler extends Stream<Message> implements StreamSink<Message> {
     var completer = new Completer();
     var subscription = stream.listen(
         (data) {
+          print('addStream data');
           add(data);
         },
         onDone: () {

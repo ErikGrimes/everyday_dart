@@ -6,41 +6,20 @@ import 'dart:async';
 import 'dart:io';
 import '../../lib/isolate/isolate.dart';
 
-class WillNotDie implements IsolateMainFactory {
+class TestMain implements FunctionIsolateMain {
   
-  Future create(die) {
+  Future run(die) {
     new Timer.periodic(new Duration(seconds:1), (timer){
-      print('kill me if you can');
+      
     });
     return new Completer().future;
   }
 
 }
 
-class Dies implements IsolateMainFactory {
-  
-  create(terminate) {
-    print('starting');
-    throw 'Boom';
-  }
- 
-}
-
-class LoopsForever implements IsolateMainFactory {
-  
-  create(terminate) {
-    runAsync((){
-      while(true){
-        sleep(new Duration(milliseconds:10));
-        print('kill me if you can');
-      }
-    });
-  }
- 
-}
 
 main(){
-  var isolate = new RegeneratingFunctionIsolate(new LoopsForever());
+  var isolate = new FunctionIsolate(new TestMain());
 
   new Timer.periodic(new Duration(seconds:10), (_){
     isolate.dispose();

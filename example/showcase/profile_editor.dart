@@ -35,19 +35,19 @@ class ProfileEditor extends PolymerElement with ObservableMixin, CustomEventsMix
     super.inserted();
   //  print('profile form inserted ${this.host}');
     //TODO Remove this hack once https://code.google.com/p/dart/issues/detail?id=12722 is fixed.
-    _timer = new Timer.periodic(new Duration(seconds:5),(_){
+   /* _timer = new Timer.periodic(new Duration(seconds:5),(_){
       this.dispatchCustomEvent('everyday-save', profile);
-    });
+    });*/
   }
   
   removed(){
   //  print('profile form removed');
-    _timer.cancel();
+  //  _timer.cancel();
     super.removed();
   }
   
   changed(e){
-    this.dispatchEvent(new Event('change')); 
+    this.dispatchCustomEvent('everyday-save', profile);
   }
   
 }

@@ -48,10 +48,11 @@ class EverydayPatchObserver extends PolymerElement with
     return cr.field == OBSERVE;
   }
   
+  //TODO coalesce multiple changes to the same field into a single edit
   _configure(){
     if(observe != null){
       new ObjectPatchObserver(observe).changes.listen((patches){
-        changed.add(patches);
+        changed.addAll(patches);
       });
     }
   }

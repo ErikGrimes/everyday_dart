@@ -39,14 +39,18 @@ class PostgresqlEntityManagerService implements EntityManager {
     }
 
     _pool.connect(timeout.inMilliseconds).then((connection){
-       handler.findByKey(keys, connection, timeout: timeout);}).then((key)
-           {
-              completer.complete(key);         
-           }).catchError((error){
-        completer.completeError(error);
-      }).catchError((error) {
-        completer.completeError(error);
-      });
+       handler.findByKey(keys, connection, timeout: timeout)
+         .then((value){
+           completer.complete(value);
+         }).catchError((error) {
+           completer.completeError(error);
+         })
+           .whenComplete((){
+              connection.close();  
+           });
+    }).catchError((error){
+      completer.completeError(error);
+    });
     return completer.future;
   }
 
@@ -77,14 +81,16 @@ class PostgresqlEntityManagerService implements EntityManager {
     }
 
     _pool.connect(timeout.inMilliseconds).then((connection){
-       handler.persist(key, changes, connection, timeout: timeout);}).then((key)
-           {
-              completer.complete(key);         
-           }).catchError((error){
+      handler.persist(key, changes, connection, timeout: timeout).then((key){
+        completer.complete(key);
+      }).catchError((error){
         completer.completeError(error);
-      }).catchError((error) {
-        completer.completeError(error);
+      }).whenComplete((){
+        connection.close();
       });
+    }).catchError((error) {
+      completer.completeError(error);
+    });
     return completer.future;
   }
 }

@@ -14,7 +14,7 @@ import 'entity_manager.dart';
 import '../rpc/invoker.dart';
 import '../mirrors/mirrors.dart';
 
-final Logger _logger = new Logger('everyday.entity.everyday_rpc_entity_manager');
+final Logger _LOGGER = new Logger('everyday.entity.everyday_rpc_entity_manager');
 
 const Duration _DEFAULT_TIMEOUT = const Duration(seconds: 1);
 
@@ -43,7 +43,7 @@ implements EntityManager {
   
   }
   
-  Future<Stream<Entity>> findByKey(String type, List keys, {Duration timeout}) {
+  Future<List<Entity>> findByKey(String type, List keys, {Duration timeout}) {
     var completer = new Completer();
     invoker.call(endpoint, 'findById',
         InvocationType.INVOKE).then(
@@ -58,7 +58,7 @@ implements EntityManager {
     return completer.future;
   }
   
-  Future<Stream<Entity>> namedQuery(String name, String type, Map params, {Duration timeout}) {
+  Future<List<Entity>> namedQuery(String name, String type, Map params, {Duration timeout}) {
     var completer = new Completer();
     invoker.call(endpoint, 'namedQuery',
         InvocationType.INVOKE).then(
@@ -75,7 +75,7 @@ implements EntityManager {
 
   Future persist(String type, var key, List<ObjectPatchRecord> changes, {Duration timeout}) {
     var completer = new Completer();
-    _logger.finest('persist submitting $changes ');
+    _LOGGER.finest('Persisting $changes');
     invoker.call(endpoint, 'persist', InvocationType.INVOKE, positional:[type, key, changes], timeout:timeout).then((_){
       completer.complete(key);
     }).catchError((e){

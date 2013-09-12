@@ -180,8 +180,11 @@ class EverydayWebsocket extends PolymerElement
    }, onError: (error){
      completer.complete(error);
    }, onDone: (){
-     completer.complete();
+     if(!completer.isCompleted){
+      completer.complete();
+     }
    }, cancelOnError: true);
+   return completer.future;
   }
 
 }

@@ -80,7 +80,7 @@ _handleNewClient(WebSocket client){
   
   spawnFunctionIsolate(main).then((isolate){
     IsolateChannel.bind(localReceive).then((channel){
-      client.pipe(channel).then((_){}).catchError((error){
+      client.pipe(channel).catchError((error){
         _LOGGER.warning('An error occurred on the client websocket $error', error);
       }).whenComplete((){
         _LOGGER.info('Client disconnected');
@@ -123,8 +123,14 @@ class EverydayShowcaseClientMain implements FunctionIsolateMain {
       IsolateChannel.connect(_sendPort).then((channel){
         _LOGGER.finest('IsolateChannel connected');
         _channel = channel;
-       _channel.transform(codec.decoder).pipe(new InsatiableStreamConsumer(handler));
-       handler.transform(codec.encoder).pipe(new InsatiableStreamConsumer(channel));
+         var decoderStream = new ConverterStream(codec.decoder);
+         decoderStream.pipe(handler);
+         _channel.pipe(decoderStream);   
+         var encoderStream = new ConverterStream(codec.encoder);
+         encoderStream.pipe(_channel);
+         handler.pipe(encoderStream);
+      }).catchError((error) {
+        _done.completeError(error);
       });
       
 

@@ -69,20 +69,13 @@ class EverydayPersistencePersist extends PolymerElement with
     }
   }
   
-  _changed(){
-    _unsaved.addAll(changed);
-    if(_pending != null){
-      _changedWhilePending = true;
-    }else {
-      _persist();
-    }
-  }
-  
   _isChanged(cr){
     return cr.field == CHANGED;
   }
   
   _persist(){
+    //TODO compact changes targeting the same path
+    _unsaved.addAll(changed);
     var submit = _unsaved;
     _unsaved = new List();
     _pending = entityManager.persist(convertSymbolToString(reflectClass(entityType).simpleName), entityKey, submit);

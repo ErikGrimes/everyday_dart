@@ -47,7 +47,6 @@ class EverydayPersistenceLoad extends PolymerElement with ChangeNotifierMixin, C
   }
   
   inserted(){
-    print('everyday-persistence-load inserted');
     _configure(); 
     _selfSub = this.changes.listen(_propertyChanged);
   }

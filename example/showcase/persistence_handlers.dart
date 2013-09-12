@@ -14,7 +14,7 @@ import 'package:postgresql/postgresql.dart';
 import 'model.dart';
 
 class ProfileEntityHandler extends Object with PostgresqlIdGeneratorMixin implements PostgresqlEntityHandler {
-  
+ 
   static const CREATE_PROFILE_SEQUENCE_= 'create sequence profile_sequence;';
 
   static const String CREATE_PROFILE_TABLE = '''
@@ -71,13 +71,14 @@ class ProfileEntityHandler extends Object with PostgresqlIdGeneratorMixin implem
   Future persist(key, List<ObjectPatchRecord> changes, Connection connection, {Duration timeout}) {
     var completer = new Completer();
     if(key == null){
-      generateId('profile', connection).then((id){
-      var profile = new Profile(key:id);    
-      _updateAndSave(INSERT_PROFILE, changes, profile, connection).then((_){
-        _cache[key] = profile;
-        completer.complete(id);
-      });
-        completer.complete(id);  
+      this.generateId('profile_sequence', connection).then((id){
+        var profile = new Profile(key:id);    
+        _updateAndSave(INSERT_PROFILE, changes, profile, connection).then((_){
+          _cache[key] = profile;
+          completer.complete(id);
+        }).catchError((error){
+          completer.completeError(error);
+        });
       }).catchError((error) {
         completer.completeError(error);
       });
@@ -100,7 +101,9 @@ class ProfileEntityHandler extends Object with PostgresqlIdGeneratorMixin implem
       var profile = _codec.decode(row.data);
       results.add(profile);
     }, onDone:(){
-      completer.complete(results);
+      if(!completer.isCompleted){
+        completer.complete(results);
+      }
     }, onError:(error){
       completer.completeError(error);
     });

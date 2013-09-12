@@ -89,8 +89,6 @@ class EverydayShowcase extends PolymerElement with ObservableMixin {
       setOffline();
     });
     
-    
-    
    // this.shadowRoot.query('#auth').xtag.auto=true;
     //profilePersistence = this.shadowRoot.query('#profile-persistence').xtag;
     
@@ -102,8 +100,6 @@ class EverydayShowcase extends PolymerElement with ObservableMixin {
   profileLoaded(event,  detail, target){
     _LOGGER.info('Profile loaded');
     profile = target.xtag.entity; 
-   // profilePersist = this.shadowRoot.query('#profile-persist').xtag;
-   // profileObserver = this.shadowRoot.query('#profile-observer').xtag;
     Observable.dirtyCheck();
   }
   
@@ -118,7 +114,6 @@ class EverydayShowcase extends PolymerElement with ObservableMixin {
     }
     profileChanged = profileBuffer;
     profileBuffer = new List();
-    print(identical(profilePersist.changed,profileChanged));
     profilePersist.changed = profileChanged;
     profileObserver.changed = profileBuffer;
     Observable.dirtyCheck();
@@ -129,7 +124,7 @@ class EverydayShowcase extends PolymerElement with ObservableMixin {
   }
   
   profileNotPersisted(event, detail, target){
-    _LOGGER.info('Profile not persisted');
+    _LOGGER.info('Profile not persisted [$detail]');
   }
   
   socketError(event, detail, target){

@@ -40,7 +40,6 @@ abstract class CustomEventsMixin implements PolymerElement {
     var delegate = this.customEventHandlers['on-$type'];
     var event = new CustomEvent(type);
     customEventController.add(new CustomEvent_(event, detail,this));
-    print('dispatching $type $delegate');
     if(delegate != null){
       delegate([event, detail, this]);
     }

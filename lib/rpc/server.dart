@@ -19,16 +19,19 @@ class MessageHandler extends Stream<Message> implements StreamSink<Message> {
   MessageHandler(this._router);
   
   _handleCall(Call call){
+    _LOGGER.finest('Handling call ${call.callId}');
     _router.route(call).then((_){
       _outbound.add(_);
     }).catchError((e){
       _outbound.add(e);
-    }, test: (e) => e is CallError);
+    }, test: (e) => e is CallError)
+    .catchError((error){
+      _LOGGER.warning('Unexpected error: $error', error);
+    });
   }
   
 
   void add(event) {
-    print('add $event');
     if(event is Call){
       _handleCall(event);
     }
@@ -44,7 +47,6 @@ class MessageHandler extends Stream<Message> implements StreamSink<Message> {
     var completer = new Completer();
     var subscription = stream.listen(
         (data) {
-          print('addStream data');
           add(data);
         },
         onDone: () {

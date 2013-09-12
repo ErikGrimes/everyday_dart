@@ -1,11 +1,33 @@
-// Copyright (c) 2013, the Everyday Dart project authors.  Please see the AUTHORS 
-// file for details. All rights reserved. Use of this source code is licenced 
-// under the Apache License, Version 2.0.  See the LICENSE file for details.
-
-library everyday.async.stream;
-
 import 'dart:async';
 import 'dart:convert';
+
+import '../../example/showcase/shared.dart';
+import '../../example/showcase/model.dart';
+
+main(){
+  var codec = new EverydayShowcaseCodec();
+  
+  StreamController channel = new StreamController();
+  StreamController handler = new StreamController();
+
+  handler.stream.listen((data){
+    print('data $data');
+  }, onError: (error){
+    print('error $error');
+  }, onDone: (){
+    print('done');
+  });
+  
+  
+  new Timer.periodic(new Duration(seconds:1), (time) {
+    channel.add(codec.encode(new Profile()));
+  });
+  
+  //this will signal done after only one event
+  var converter = new ConverterStream(codec.decoder);
+  converter.pipe(handler);
+  channel.stream.pipe(converter);
+}
 
 class ConverterStream extends Stream implements StreamConsumer {
   
@@ -32,6 +54,7 @@ class ConverterStream extends Stream implements StreamConsumer {
   }
 
   Future close() {
+    print('closed');
     _controller.close();
     return new Future.value();
   }

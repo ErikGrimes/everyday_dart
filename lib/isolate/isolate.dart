@@ -11,22 +11,24 @@ import 'package:logging/logging.dart';
 
 class IsolateChannel extends Stream implements StreamSink {
   
-  StreamController _controller = new StreamController();
+  StreamController _controller = new StreamController.broadcast();
   SendPort _sendPort;
   ReceivePort _receivePort;
   SendPort _replyTo;
+  final String _name;
   Completer _done = new Completer();
   
-  IsolateChannel._(this._receivePort, this._sendPort){
+  IsolateChannel._(this._receivePort, this._sendPort, [name='']):this._name = name{
     _receivePort.receive((message, replyTo){
       _controller.add(message);
     });
+
   }
   
   static Future<IsolateChannel> connect(SendPort connectTo){
     ReceivePort thisPort = new ReceivePort();
     connectTo.send('connect', thisPort.toSendPort());
-    return new Future.value(new IsolateChannel._(thisPort, connectTo));
+    return new Future.value(new IsolateChannel._(thisPort, connectTo, 'connect'));
    
   }
   
@@ -34,7 +36,7 @@ class IsolateChannel extends Stream implements StreamSink {
     var completer = new Completer();
     value.receive((message, replyTo){
       if(message == 'connect'){
-        completer.complete(new IsolateChannel._(value, replyTo));
+        completer.complete(new IsolateChannel._(value, replyTo, 'bind'));
       }
     });
     return completer.future;

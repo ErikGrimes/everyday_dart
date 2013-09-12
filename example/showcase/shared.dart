@@ -7,6 +7,7 @@ library everyday.showcase.shared;
 import 'dart:convert';
 import 'package:everyday_dart/rpc/serialization.dart' as rpc;
 import 'package:everyday_dart/aai/serialization.dart' as aai;
+import 'package:everyday_dart/patch/serialization.dart' as patch;
 import 'package:everyday_dart/rpc/serialization_codec.dart';
 import 'package:serialization/serialization.dart';
 import 'model.dart';
@@ -14,13 +15,14 @@ import 'model.dart';
 class EverydayShowcaseCodec extends Codec {
   Codec _codec;
   EverydayShowcaseCodec(){
-    var ser = new Serialization();
-    rpc.configure(ser);
-    aai.configure(ser);
-    ser.addRule(new ProfileRule());
-    ser.addRule(new ContactInfoRule());
-    ser.addRule(new AddressRule());
-    _codec = new SerializationCodec(ser).fuse(new JsonStringCodec());
+    var serialization = new Serialization();
+    rpc.configure(serialization);
+    aai.configure(serialization);
+    patch.configure(serialization);
+    serialization.addRule(new ProfileRule());
+    serialization.addRule(new ContactInfoRule());
+    serialization.addRule(new AddressRule());
+    _codec = new SerializationCodec(serialization).fuse(new JsonStringCodec());
   }
 
   Converter get decoder => _codec.decoder;
@@ -60,8 +62,8 @@ class EverydayShowcaseCodecMixin implements Codec<Object,String>{
 
 class ProfileRule extends CustomRule {
   bool appliesTo(instance, Writer w) => instance.runtimeType == Profile;
-  getState(Profile instance) => [instance.addressAs, instance.bornOn, instance.fullName, instance.contactInfo];
-  create(state) => new Profile(addressAs:state[0], bornOn:state[1], fullName: state[2], contactInfo:state[3]);
+  getState(Profile instance) => [instance.key, instance.addressAs, instance.bornOn, instance.fullName, instance.contactInfo];
+  create(state) => new Profile(key:state[0], addressAs:state[1], bornOn:state[2], fullName: state[3], contactInfo:state[4]);
   setState(instance, List state) => {};
 }
 

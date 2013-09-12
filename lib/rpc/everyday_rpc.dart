@@ -7,6 +7,8 @@ library everyday.rpc.everyday_rpc;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
+
+import 'package:logging/logging.dart';
 import 'package:polymer/polymer.dart';
 import 'shared.dart';
 import '../rpc/invoker.dart';
@@ -15,6 +17,8 @@ import '../async/stream.dart';
 
 @CustomTag('everyday-rpc')
 class EverydayRpc extends PolymerElement with ObservableMixin implements Invoker  {
+  
+  static final Logger _LOGGER = new Logger('everyday.rpc.everyday_rpc');
   
   static final Symbol CODEC = const Symbol('codec');
   static final Symbol DEFAULT_TIMEOUT = const Symbol('defaultTimeout');
@@ -78,32 +82,31 @@ class EverydayRpc extends PolymerElement with ObservableMixin implements Invoker
   
   Future _call(String endpoint, String method, InvocationType invocationType, {List positional, Map named, Duration timeout}){
     var callId = _random.nextInt(4294967296);
+    
     if(positional == null){
       positional = new List();
     }
+    
     if(named == null){
       named = new Map();
     }
+    
     var call = new Call(callId, endpoint, method, invocationType, positional:positional, named:named);
     var completer = new Completer();
     _completers[callId] = completer;
 
-    var controller = new StreamController();
-    controller.add(call);
-    pipeStream(controller.stream.transform(codec.encoder), socket).
-    then((_){
-      if(timeout != null){
-        var timer =  new Timer(timeout, () {
-          _completers.remove(callId);
-          if(!completer.isCompleted){
-            completer.completeError('Call timed out');
-          }
-        });
-     
-      }
-    }).catchError((error){
-      completer.completeError(error);
-    });
+    _LOGGER.finest('Submitting call ${call.callId}');
+
+    socket.add(codec.encoder.convert(call));
+    
+    if(timeout != null){
+      var timer =  new Timer(new Duration(seconds:5), () {
+        _completers.remove(callId);
+        if(!completer.isCompleted){
+          completer.completeError('Call timed out');
+        }
+      });
+    }
 
    return completer.future;
    
@@ -111,17 +114,12 @@ class EverydayRpc extends PolymerElement with ObservableMixin implements Invoker
  
   _configure(){ 
     if(_allAttributesSet()){ 
-      var inbound = socket.onMessage.transform(new _MessageEventDecoder()).transform(codec.decoder).handleError((error){
-       print('error $error');
-      });
-      
-      //TODO Ask about this grossness
-      var transformed = new StreamController.broadcast();
-      
-      pipeStream(inbound, transformed);
-         
-      _socketSubs.add(transformed.stream.where(((event){return event is CallResult;})).listen(_onCallResult));
-      _socketSubs.add(transformed.stream.where(((event){return event is CallError;})).listen(_onCallError));
+      //TODO Figure out proper cleanup and error handling
+      var decoderStream = new ConverterStream(new _MessageEventDecoder(codec.decoder));
+      socket.onMessage.pipe(decoderStream);
+      var decoded = decoderStream.asBroadcastStream();
+      _socketSubs.add(decoded.where(((event){return event is CallResult;})).listen(_onCallResult));
+      _socketSubs.add(decoded.where(((event){return event is CallError;})).listen(_onCallError));
     }
 
   }
@@ -131,6 +129,7 @@ class EverydayRpc extends PolymerElement with ObservableMixin implements Invoker
   }
   
   _onCallResult(CallResult msg){
+    _LOGGER.finest('Completing call ${msg.callId}');
     var c = _completers.remove(msg.callId);
     if(c != null && !c.isCompleted){
       c.complete(msg.data);
@@ -138,6 +137,7 @@ class EverydayRpc extends PolymerElement with ObservableMixin implements Invoker
   }
   
   _onCallError(CallError msg){
+    _LOGGER.finest('Completing call ${msg.callId}');
     var c = _completers.remove(msg.callId);
     if(c != null && !c.isCompleted){
       c.completeError(msg.error);
@@ -157,13 +157,17 @@ class EverydayRpc extends PolymerElement with ObservableMixin implements Invoker
 
 class _MessageEventDecoder extends Converter {
   
+  Converter _converter;
+  
+  _MessageEventDecoder(this._converter);
+  
   convert(event) {
-    return event.detail;
+    return _converter.convert(event.detail);
   }
   
   ChunkedConversionSink startChunkedConversion(
       ChunkedConversionSink<Object> sink) {
-    return new _MessageEventDecoderSink(sink);
+    return new _MessageEventDecoderSink(_converter, sink);
   }
   
 }
@@ -174,12 +178,13 @@ class _MessageEventDecoderSink extends ChunkedConversionSink {
   
   ChunkedConversionSink _sink;
   
-  _MessageEventDecoderSink(this._sink);
+  Converter _converter; 
+  
+  _MessageEventDecoderSink(this._converter, this._sink);
   
   void add(chunk) {
-    print('adding chunk $chunk');
     if(_closed) throw new StateError('Only one chunk may be added');
-    _sink.add(chunk.detail);
+    _sink.add(_converter.convert(chunk.detail));
     _closed = true;
   }
 

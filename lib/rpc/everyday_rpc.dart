@@ -81,6 +81,7 @@ class EverydayRpc extends PolymerElement with ObservableMixin implements Invoker
   }
   
   Future _call(String endpoint, String method, InvocationType invocationType, {List positional, Map named, Duration timeout}){
+    
     var callId = _random.nextInt(4294967296);
     
     if(positional == null){
@@ -96,11 +97,13 @@ class EverydayRpc extends PolymerElement with ObservableMixin implements Invoker
     _completers[callId] = completer;
 
     _LOGGER.finest('Submitting call ${call.callId}');
-
-    socket.add(codec.encoder.convert(call));
+    
+    if(socket.isOnline){
+      socket.add(codec.encoder.convert(call));
+    }
     
     if(timeout != null){
-      var timer =  new Timer(new Duration(seconds:5), () {
+      var timer =  new Timer(timeout, () {
         _completers.remove(callId);
         if(!completer.isCompleted){
           completer.completeError('Call timed out');

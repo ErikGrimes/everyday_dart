@@ -9,6 +9,7 @@ import 'shared.dart';
 
 configure(Serialization serialization){
   serialization.addRule(new EmailPasswordTokenRule());
+  serialization.addRule(new UserRule());
 }
 
 class EmailPasswordTokenRule extends CustomRule {
@@ -16,4 +17,11 @@ class EmailPasswordTokenRule extends CustomRule {
   getState(instance) => [instance.email, instance.password];
   create(state) => new EmailPasswordToken(state[0], state[1]);
   setState(EmailPasswordToken a, List state) => {};
+}
+
+class UserRule extends CustomRule {
+  bool appliesTo(instance, Writer w) => instance.runtimeType == User;
+  getState(User instance) => [];
+  create(state) => new User();
+  setState(User instance, List state) => {};
 }

@@ -10,6 +10,7 @@ import 'dart:mirrors';
 import 'package:polymer/polymer.dart';
 import '../polymer/polyfills.dart';
 import 'entity_manager.dart';
+import '../mirrors/mirrors.dart';
 
 @CustomTag('everyday-persistence-load')
 class EverydayPersistenceLoad extends PolymerElement with ChangeNotifierMixin, CustomEventsMixin, AsynchronousEventsMixin {
@@ -76,7 +77,7 @@ class EverydayPersistenceLoad extends PolymerElement with ChangeNotifierMixin, C
   _configure(){
     if(_requiredAttributesSet){
       if(_entityKey != null){
-        entityManager.findByKey(_entityType, [_entityKey]).then((results){
+        entityManager.findByKey(convertSymbolToString(reflectClass(_entityType).simpleName), [_entityKey]).then((results){
           results.toList().then((list){
             if(list.isNotEmpty){
               _entity = list[0]; 

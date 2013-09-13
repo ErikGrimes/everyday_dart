@@ -8,7 +8,7 @@ import 'dart:html';
 import 'package:polymer/polymer.dart';
 import 'package:logging/logging.dart';
 import 'package:everyday_dart/places/places.dart';
-import 'package:everyday_dart/aai/shared.dart';
+import 'package:everyday_dart/user/shared.dart';
 import 'places.dart';
 import 'model.dart';
 
@@ -38,9 +38,18 @@ class EverydayShowcase extends PolymerElement with ObservableMixin {
   var profileObserver;
   
   @observable
+  var showcaseUserService;
+  
+  @observable
   Entity profile;
   
   final ObservableBox<Place> place = new ObservableBox<Place>();
+
+  @observable 
+  bool displayUserAccess = true;
+  
+  @observable 
+  bool displayMain = false;
   
   @observable
   bool isProfilesPlace;
@@ -80,6 +89,8 @@ class EverydayShowcase extends PolymerElement with ObservableMixin {
     showcaseRpc.codec = showcaseCodec;
     showcaseRpc.socket = showcaseSocket;
     showcaseEntityManager.invoker = showcaseRpc;
+    showcaseUserService = this.shadowRoot.query('#showcase-user-service').xtag;
+    showcaseUserService.invoker = showcaseRpc;
     
     showcaseSocket.onOnline.listen((data){
       setOnline();
@@ -89,13 +100,9 @@ class EverydayShowcase extends PolymerElement with ObservableMixin {
       setOffline();
     });
     
-   // this.shadowRoot.query('#auth').xtag.auto=true;
-    //profilePersistence = this.shadowRoot.query('#profile-persistence').xtag;
-    
-    //this.shadowRoot.query('#profile-persistence').xtag.entityManager = showcaseEntityManager;
-    
     Observable.dirtyCheck();
   } 
+  
   
   profileLoaded(event,  detail, target){
     _LOGGER.info('Profile loaded');
@@ -133,6 +140,13 @@ class EverydayShowcase extends PolymerElement with ObservableMixin {
   
   authenticationFailed(event, detail, source){
     _LOGGER.info('Unable to authenticate user');
+  }
+  
+  signedIn(event, detail, source){
+    _LOGGER.info('Signed in');
+    displayUserAccess = false;
+    displayMain = true;
+    Observable.dirtyCheck();
   }
   
   authenticationSucceeded(event, detail, source){

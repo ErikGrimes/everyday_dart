@@ -3,24 +3,26 @@
 // under the Apache License, Version 2.0.  See the LICENSE file for details.
 
 
-library everyday.aai._aai_service.dart;
+library everyday.user.user_service.dart;
 
 import 'dart:async';
 import 'shared.dart';
 
 
 //TODO have a look at http://shiro.apache.org/ and other pleasant security frameworks
-abstract class AAIService {
-  Future signIn(AuthToken token);
+abstract class UserService {
+  Future<User> signIn(AuthToken token, [timeout]);
 }
 
 
-class DefaultAAIService implements AAIService {
+class DefaultUserService implements UserService {
   
-  Future signIn(AuthToken authToken){
+  static const Duration DEFAULT_TIMEOUT = const Duration(seconds:1);
+  
+  Future<User> signIn(AuthToken authToken, [timeout = DEFAULT_TIMEOUT]){
     var completer = new Completer();
     if(authToken is EmailPasswordToken){
-      completer.complete();
+      completer.complete(new User());
     }else {
       completer.completeError(new ArgumentError('Invalid token type.'));
     }

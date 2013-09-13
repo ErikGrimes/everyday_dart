@@ -10,7 +10,7 @@ import 'dart:isolate';
 
 import 'package:everyday_dart/rpc/server.dart';
 import 'package:logging/logging.dart';
-import 'package:everyday_dart/aai/aai_service.dart';
+import 'package:everyday_dart/user/user_service.dart';
 import 'package:postgresql/postgresql_pool.dart';
 import 'package:everyday_dart/persistence/entity_manager_service.dart';
 import 'package:everyday_dart/isolate/isolate.dart';
@@ -113,7 +113,7 @@ class EverydayShowcaseClientMain implements FunctionIsolateMain {
       _LOGGER.finest('Persistence initialized');
       _pool = pool;
       var router = new CallRouter();
-      router.registerEndpoint('aai', new DefaultAAIService());
+      router.registerEndpoint('user', new DefaultUserService());
       var codec = new EverydayShowcaseCodec();
       var handlers = {'Profile': new ProfileEntityHandler(codec)};  
       var entityManager = new PostgresqlEntityManagerService(_pool, handlers);

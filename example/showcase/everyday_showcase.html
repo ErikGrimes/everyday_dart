@@ -8,11 +8,13 @@
 <link rel='import' href='packages/everyday_dart/persistence/everyday_rpc_entity_manager.html'>
 <link rel='import' href='packages/everyday_dart/persistence/everyday_persistence.html'>
 <link rel='import' href='packages/everyday_dart/places/everyday_place_history.html'>
-<link rel='import' href='packages/everyday_dart/aai/everyday_rpc_authenticate.html'>
 <link rel='import' href='packages/everyday_dart/persistence/everyday_persistence_load.html'>
 <link rel='import' href='packages/everyday_dart/patch/everyday_patch_observer.html'>
 <link rel='import' href='packages/everyday_dart/persistence/everyday_persistence_persist.html'>
+<link rel='import' href='packages/everyday_dart/persistence/everyday_persistence_find_all.html'>
+<link rel='import' href='packages/everyday_dart/user/everyday_rpc_user_service.html'>
 <link rel='import' href='profile_editor.html'>
+<link rel='import' href='everyday_user_access.html'>
 
  <polymer-element name='everyday-showcase' extends='div'>
   <template bind>
@@ -78,56 +80,23 @@
     invoker='{{showcaseRpc}}'>
   </everyday-rpc-entity-manager>
   
+   <everyday-rpc-user-service 
+    id='showcase-user-service'
+    invoker='{{showcaseRpc}}'>
+  </everyday-rpc-user-service>
+  
   <everyday-place-history transformer='{{placesTransformer}}' place='{{place}}'>
   </everyday-place-history>
-
-  <template if='{{online}}' bind>
-    <div>online</div>
-    <everyday-persistence-load
-     id='profile-load'
-     entity-manager='{{showcaseEntityManager}}'
-     entity-type='{{profileType}}'
-     key='{{profileKey}}'
-     on-everyday-success='{{profileLoaded}}'
-     entity='{{profile}}'>
-    </everyday-persistence-load>
   
-    <template id='profile-editor' if='{{profile}}'>
-     <everyday-patch-observer 
-      id='profile-observer'
-      observe='{{profile}}'
-      changed='{{profileBuffer}}'>
-     </everyday-patch-observer>
-     <everyday-persistence-persist
-        id='profile-persist'
-        entity-manager='{{showcaseEntityManager}}'
-        entity-key='{{profileKey}}'
-        entity-type='{{profileType}}'
-        changed='{{profileChanged}}'
-        on-everyday-success='{{profilePersisted}}'
-        on-everyday-error='{{profileNotPersisted}}'>
-      </everyday-persistence-persist>
-      <profile-editor id='profile-editor' profile='{{profile}}' on-everyday-save='{{persistProfile}}'></profile-editor>
-    </template> 
-  </template> 
-  <!--
-  <template if='{{online}}'>
-    <everyday-rpc-authenticate
-      id='auth'
-      invoker='{{showcaseRpc}}'
-      auto='{{true}}'
-      endpoint='{{"aai"}}'
-      token='{{token}}'
-      on-everyday-error='{{authenticationFailed}}'
-      on-everyday-success='{{authenticationSucceeded}}'
-      timeout='{{5000}}'>   
-    </everyday-rpc-authenticate>
-</template>
- 
-   --> 
+  <template if='{{displayUserAccess}}'>                    
+    <everyday-user-access service='{{showcaseUserService}}' on-everyday-sign-in='{{signedIn}}'></everyday-user-access>
+  </template>
+  
+  <template if='{{displayMain}}'>
+    <everyday-persistence-find-all entity-type='{{profileType}}'></everyday-persistence-find-all>  
   </template>
 
-  <script type='application/dart' src ='everyday_showcase.dart'>
- 
-  </script>
+  </template>
+
+  <script type='application/dart' src ='everyday_showcase.dart'></script>
   </polymer-element>

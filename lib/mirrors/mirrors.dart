@@ -10,7 +10,7 @@ import 'dart:mirrors';
 const String _SYMBOL_START = 'Symbol("';
 const String _SYMBOL_END = '")';
 
-convertSymbolToString(symbol){
+convertSymbolToString(Symbol symbol){
   var symbolString = symbol.toString();
   return symbolString.substring(_SYMBOL_START.length,symbolString.length-_SYMBOL_END.length);
 }

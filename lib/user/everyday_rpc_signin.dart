@@ -6,13 +6,13 @@ library everyday.aai.everyday_rpc_authenticate;
 
 import 'dart:async';
 import 'package:polymer/polymer.dart';
-import 'package:everyday_dart/aai/shared.dart';
+import 'shared.dart';
 import '../rpc/invoker.dart';
 import '../polymer/polyfills.dart';
 
 
-@CustomTag('everyday-rpc-authenticate')
-class EverydayRpcAuthenticate extends PolymerElement with 
+@CustomTag('everyday-rpc-signin')
+class EverydayRpcSignin extends PolymerElement with 
   ObservableMixin, AsynchronousEventsMixin, CustomEventsMixin {
   
   static const Symbol RESPONSE = const Symbol('response');
@@ -31,10 +31,10 @@ class EverydayRpcAuthenticate extends PolymerElement with
   AuthToken token;
   
   @observable
-  int timeout = 1000;
+  User user;
   
   @observable
-  var response;
+  int timeout = 1000;
   
   @observable
   Map positionalParameters;
@@ -54,7 +54,6 @@ class EverydayRpcAuthenticate extends PolymerElement with
   }
   
   inserted(){
-    print('inserted');
     _configure();
     _selfSub = this.changes.listen(_propertyChanged);
   }
@@ -100,13 +99,13 @@ class EverydayRpcAuthenticate extends PolymerElement with
     if(_attributesSet) {  
     var subs = [];
      subs.add(_call.onSuccess.listen((event){
-        callSucceeded(event, event.detail, this);
+        this.callSucceeded(event, event.detail, this);
       }));
       subs.add(_call.onError.listen((event){
-        callFailed(event, event.detail, this);
+        this.callFailed(event, event.detail, this);
       }));
       subs.add(_call.onComplete.listen((event){
-        this.response = event.detail;
+        this.user = event.detail;
         subs.forEach((s){s.cancel();});
       }));
       _call.go();

@@ -6,7 +6,7 @@ library everyday.showcase.shared;
 
 import 'dart:convert';
 import 'package:everyday_dart/rpc/serialization.dart' as rpc;
-import 'package:everyday_dart/aai/serialization.dart' as aai;
+import 'package:everyday_dart/user/serialization.dart' as aai;
 import 'package:everyday_dart/patch/serialization.dart' as patch;
 import 'package:everyday_dart/rpc/serialization_codec.dart';
 import 'package:serialization/serialization.dart';

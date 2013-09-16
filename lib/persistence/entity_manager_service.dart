@@ -15,7 +15,11 @@ const Duration DEFAULT_TIMEOUT = const Duration(seconds:1);
 
 abstract class PostgresqlEntityHandler {
   
-  Future<List<Entity>> findByKey(List keys, Connection connection, {Duration timeout: DEFAULT_TIMEOUT});
+  Future<Entity> findByKey(key, Connection connection, {Duration timeout: DEFAULT_TIMEOUT});
+  
+  Future<List<Entity>> findByKeys(List keys, Connection connection, {Duration timeout: DEFAULT_TIMEOUT});
+  
+  Future<List<Entity>> findAll(Connection connection, {Duration timeout: DEFAULT_TIMEOUT});
 
   Future namedQuery(String name, Map params, Connection connection, {Duration timeout: DEFAULT_TIMEOUT});
 
@@ -31,7 +35,7 @@ class PostgresqlEntityManagerService implements EntityManager {
   
   PostgresqlEntityManagerService(this._pool, this._handlers);
   
-  Future<List<Entity>> findByKey(String type, List keys, {Duration timeout: DEFAULT_TIMEOUT}) {
+  Future<Entity> findByKey(String type, key, {Duration timeout: DEFAULT_TIMEOUT}) {
     var completer = new Completer();
     var handler = _handlers[type];
     if(handler == null){
@@ -39,7 +43,7 @@ class PostgresqlEntityManagerService implements EntityManager {
     }
 
     _pool.connect(timeout.inMilliseconds).then((connection){
-       handler.findByKey(keys, connection, timeout: timeout)
+       handler.findByKey(key, connection, timeout: timeout)
          .then((value){
            completer.complete(value);
          }).catchError((error) {
@@ -54,7 +58,7 @@ class PostgresqlEntityManagerService implements EntityManager {
     return completer.future;
   }
 
-  Future namedQuery(String name, String type, Map params, {Duration timeout: DEFAULT_TIMEOUT}) {
+  Future namedQuery(String name, String type, {Map params, Duration timeout: DEFAULT_TIMEOUT}) {
     var completer = new Completer();
     var handler = _handlers[type];
     if(handler == null){
@@ -89,6 +93,52 @@ class PostgresqlEntityManagerService implements EntityManager {
         connection.close();
       });
     }).catchError((error) {
+      completer.completeError(error);
+    });
+    return completer.future;
+  }
+
+  Future<List<Entity>> findAll(String type, {Duration timeout}) {
+    var completer = new Completer();
+    var handler = _handlers[type];
+    if(handler == null){
+      completer.completeError(new ArgumentError('Unknown type $type'));
+    }
+
+    _pool.connect(timeout.inMilliseconds).then((connection){
+       handler.findAll(connection, timeout: timeout)
+         .then((value){
+           completer.complete(value);
+         }).catchError((error) {
+           completer.completeError(error);
+         })
+           .whenComplete((){
+              connection.close();  
+           });
+    }).catchError((error){
+      completer.completeError(error);
+    });
+    return completer.future;
+  }
+
+  Future<List<Entity>> findByKeys(String type, List keys, {Duration timeout}) {
+    var completer = new Completer();
+    var handler = _handlers[type];
+    if(handler == null){
+      completer.completeError(new ArgumentError('Unknown type $type'));
+    }
+
+    _pool.connect(timeout.inMilliseconds).then((connection){
+       handler.findByKeys(keys, connection, timeout: timeout)
+         .then((value){
+           completer.complete(value);
+         }).catchError((error) {
+           completer.completeError(error);
+         })
+           .whenComplete((){
+              connection.close();  
+           });
+    }).catchError((error){
       completer.completeError(error);
     });
     return completer.future;

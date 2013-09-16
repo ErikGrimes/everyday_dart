@@ -43,45 +43,28 @@ implements EntityManager {
   
   }
   
-  Future<List<Entity>> findByKey(String type, List keys, {Duration timeout}) {
-    var completer = new Completer();
-    invoker.call(endpoint, 'findById',
-        InvocationType.INVOKE).then(
-            (results){
-              StreamController resultStream = new StreamController.broadcast();
-              results.forEach((result){
-                resultStream.add(result);
-              });
-            }).catchError((e) {
-              completer.completeError(e);
-            });
-    return completer.future;
+  Future<Entity> findByKey(String type, var key, {Duration timeout}) {
+    return invoker.call(endpoint, 'findByKey',
+        InvocationType.INVOKE, positional:[type, key]);
   }
   
-  Future<List<Entity>> namedQuery(String name, String type, Map params, {Duration timeout}) {
-    var completer = new Completer();
-    invoker.call(endpoint, 'namedQuery',
-        InvocationType.INVOKE).then(
-            (results){
-              StreamController resultStream = new StreamController.broadcast();
-              results.forEach((result){
-                resultStream.add(result);
-              });
-            }).catchError((e) {
-              completer.completeError(e);
-            });
-    return completer.future;
+  Future<List<Entity>> findByKeys(String type, List keys, {Duration timeout}) {
+    return invoker.call(endpoint, 'findByKeys',
+        InvocationType.INVOKE, positional:[keys]);
+  }
+  
+  Future<List<Entity>> findAll(String type, {Duration timeout}) {
+    return invoker.call(endpoint, 'findAll',
+        InvocationType.INVOKE, positional:[type]);
+  }
+  
+  Future<List<Entity>> namedQuery(String name, String type, {Map params, Duration timeout}) {
+    return invoker.call(endpoint, 'namedQuery',
+        InvocationType.INVOKE, positional:[name, type], named: {'params': params});
   }
 
   Future persist(String type, var key, List<ObjectPatchRecord> changes, {Duration timeout}) {
-    var completer = new Completer();
-    _LOGGER.finest('Persisting $changes');
-    invoker.call(endpoint, 'persist', InvocationType.INVOKE, positional:[type, key, changes], timeout:timeout).then((_){
-      completer.complete(key);
-    }).catchError((e){
-      completer.completeError(e);
-    });
-    return completer.future;
+    return invoker.call(endpoint, 'persist', InvocationType.INVOKE, positional:[type, key, changes], timeout:timeout);
   }
   
   _propertyChanged(List<ChangeRecord> records){

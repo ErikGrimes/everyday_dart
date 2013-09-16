@@ -12,7 +12,7 @@ import '../polymer/polyfills.dart';
 import 'entity_manager.dart';
 import '../mirrors/mirrors.dart';
 
-@CustomTag('everyday-persistence-load-all')
+@CustomTag('everyday-persistence-find-all')
 class EverydayPersistenceFindAll extends PolymerElement with ObservableMixin, CustomEventsMixin, AsynchronousEventsMixin {
   
   static const Symbol AUTO = const Symbol('auto');
@@ -36,6 +36,9 @@ class EverydayPersistenceFindAll extends PolymerElement with ObservableMixin, Cu
   
   inserted(){
     _selfSub = this.changes.listen(_propertyChanged);
+    if(auto){
+      go();
+    }
   }
   
   removed(){
@@ -43,6 +46,7 @@ class EverydayPersistenceFindAll extends PolymerElement with ObservableMixin, Cu
   }
   
   _propertyChanged(List<ChangeRecord> records){
+    print(records);
     for(var cr in records){
         if(_isExternallySetProperty(cr)){
           if(auto){

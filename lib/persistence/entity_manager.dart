@@ -14,9 +14,13 @@ abstract class Entity implements Observable {
 
 abstract class EntityManager {
   
-  Future<List<Entity>> findByKey(String type, List keys, {Duration timeout});
+  Future<Entity> findByKey(String type, key, {Duration timeout});
   
-  Future namedQuery(String name, String type, Map params, {Duration timeout});
+  Future<List<Entity>> findByKeys(String type, List keys, {Duration timeout});
+  
+  Future<List<Entity>> findAll(String type, {Duration timeout});
+  
+  Future namedQuery(String name, String type, {Map params, Duration timeout});
   
   Future persist(String type, var key, List<ObjectPatchRecord> changes, {Duration timeout});
    

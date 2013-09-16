@@ -93,7 +93,14 @@
   </template>
   
   <template if='{{displayMain}}'>
-    <everyday-persistence-find-all entity-type='{{profileType}}'></everyday-persistence-find-all>  
+    main
+    <template if='{{isProfilesPlace}}'>
+      profiles
+      <everyday-persistence-find-all entity-manager='{{showcaseEntityManager}}' entity-type='{{profileType}}' on-everyday-success='{{profilesLoaded}}' auto='{{true}}'></everyday-persistence-find-all> 
+      <div>{{profiles.length}} profiles found
+      <template repeat='{{profiles}}'>
+      </template>
+   </template>
   </template>
 
   </template>

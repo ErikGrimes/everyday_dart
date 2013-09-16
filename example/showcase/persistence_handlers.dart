@@ -42,6 +42,12 @@ class ProfileEntityHandler extends Object with PostgresqlIdGeneratorMixin implem
       from profile 
       where id in
       ''';
+  
+  static const FIND_PROFILE_BY_ID = '''
+      select * 
+      from profile 
+      where id = @id;
+      ''';
 
   static const FIND_ALL_PROFILES = '''
       select * 
@@ -56,12 +62,19 @@ class ProfileEntityHandler extends Object with PostgresqlIdGeneratorMixin implem
   
   ProfileEntityHandler(this._codec);
   
-  Future<List<Entity>> findByKey(List keys, Connection connection, {Duration timeout}) {
-    if(keys != null){
-      return _findByKeys(keys, connection); 
-     }else {
-      return _findAll(connection);
-    }
+  Future<Entity> findByKey(key, Connection connection, {Duration timeout}) {
+    var completer = new Completer();
+    var result;
+    connection.query(FIND_PROFILE_BY_ID,key).listen((row){
+      result = _codec.decode(row.data);
+    }, onDone:(){
+      if(!completer.isCompleted){
+        completer.complete(result);
+      }
+    }, onError:(error){
+      completer.completeError(error);
+    });
+    return completer.future;
   }
   
   Future namedQuery(String name, Map params, Connection connection, {Duration timeout}) {
@@ -94,7 +107,7 @@ class ProfileEntityHandler extends Object with PostgresqlIdGeneratorMixin implem
     return completer.future;
   }
   
-  Future _findByKeys(keys, connection){
+  Future<List<Entity>> findByKeys(keys, connection){
     var completer = new Completer();
     List results = [];
     connection.query(_buildFindByKeysSql(FIND_PROFILES_BY_ID, keys.length),keys).listen((row){
@@ -112,7 +125,7 @@ class ProfileEntityHandler extends Object with PostgresqlIdGeneratorMixin implem
   
 
   
-  Future<List<Entity>> _findAll(Connection connection, {Duration timeout}) {
+  Future<List<Entity>> findAll(Connection connection, {Duration timeout}) {
     var completer = new Completer();
     List results = [];
     connection.query(FIND_ALL_PROFILES).listen((row){

@@ -52,10 +52,13 @@ class EverydayShowcase extends PolymerElement with ObservableMixin {
   bool displayMain = false;
   
   @observable
-  bool isProfilesPlace;
+  bool isProfilesPlace = true;
   
   @observable
-  bool isProfilePlace;
+  bool isProfilePlace = false;
+  
+  @observable
+  List profiles;
   
   @observable
   AuthToken token = new EmailPasswordToken('email','password');
@@ -107,6 +110,12 @@ class EverydayShowcase extends PolymerElement with ObservableMixin {
   profileLoaded(event,  detail, target){
     _LOGGER.info('Profile loaded');
     profile = target.xtag.entity; 
+    Observable.dirtyCheck();
+  }
+  
+  profilesLoaded(event,  detail, target){
+    _LOGGER.info('Profiles loaded');
+    profiles = target.xtag.results; 
     Observable.dirtyCheck();
   }
   

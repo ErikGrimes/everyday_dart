@@ -98,13 +98,12 @@ class PostgresqlEntityManagerService implements EntityManager {
     return completer.future;
   }
 
-  Future<List<Entity>> findAll(String type, {Duration timeout}) {
+  Future<List<Entity>> findAll(String type, {Duration timeout: DEFAULT_TIMEOUT}) {
     var completer = new Completer();
     var handler = _handlers[type];
     if(handler == null){
       completer.completeError(new ArgumentError('Unknown type $type'));
     }
-
     _pool.connect(timeout.inMilliseconds).then((connection){
        handler.findAll(connection, timeout: timeout)
          .then((value){

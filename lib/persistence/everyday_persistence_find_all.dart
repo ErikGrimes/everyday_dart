@@ -2,7 +2,7 @@
 // file for details. All rights reserved. Use of this source code is licenced 
 // under the Apache License, Version 2.0.  See the LICENSE file for details.
 
-library everyday.persistence.everyday_persistence_load;
+library everyday.persistence.everyday_persistence_find_all;
 
 import 'dart:async';
 import 'dart:html';
@@ -46,7 +46,6 @@ class EverydayPersistenceFindAll extends PolymerElement with ObservableMixin, Cu
   }
   
   _propertyChanged(List<ChangeRecord> records){
-    print(records);
     for(var cr in records){
         if(_isExternallySetProperty(cr)){
           if(auto){
@@ -58,20 +57,15 @@ class EverydayPersistenceFindAll extends PolymerElement with ObservableMixin, Cu
   }
   
   _isExternallySetProperty(cr){
-    return cr.field == ENTITY_TYPE || cr.field == ENTITY_MANAGER || AUTO;
+    return cr.field == ENTITY_TYPE || cr.field == ENTITY_MANAGER || cr.field == AUTO;
   }
   
   go(){
     if(_requiredAttributesSet){
-      entityManager.findByKey(convertSymbolToString(reflectClass(entityType).simpleName), null).then((results){
-        results.toList().then((list){
-          if(list.isNotEmpty){
-            results = this.notifyPropertyChange(RESULTS, results, list);
-            this.dispatchSuccess(results);
-          }
-        });
-      }, 
-      onError:(error){
+      entityManager.findAll(convertSymbolToString(reflectClass(entityType).simpleName)).then((results){
+        this.results = this.notifyPropertyChange(RESULTS, this.results, results);
+        this.dispatchSuccess(results);
+      }).catchError((error){
         this.dispatchError(error);
       });
     }

@@ -2,7 +2,7 @@
 // file for details. All rights reserved. Use of this source code is licenced 
 // under the Apache License, Version 2.0.  See the LICENSE file for details.
 
-library everyday.persistence.everyday_persistence_load;
+library everyday.persistence.everyday_persistence_find_by_key;
 
 import 'dart:async';
 import 'dart:html';
@@ -12,8 +12,8 @@ import '../polymer/polyfills.dart';
 import 'entity_manager.dart';
 import '../mirrors/mirrors.dart';
 
-@CustomTag('everyday-persistence-load')
-class EverydayPersistenceLoad extends PolymerElement with ChangeNotifierMixin, CustomEventsMixin, AsynchronousEventsMixin {
+@CustomTag('everyday-persistence-find-by-key')
+class EverydayPersistenceFindByKey extends PolymerElement with ChangeNotifierMixin, CustomEventsMixin, AsynchronousEventsMixin {
   
   static const Symbol ENTITY_KEY = const Symbol('entityKey');
   static const Symbol ENTITY_TYPE = const Symbol('entityType');

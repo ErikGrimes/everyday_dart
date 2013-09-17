@@ -82,8 +82,19 @@ class EverydayShowcase extends PolymerElement with ObservableMixin {
     Logger.root.onRecord.listen(_logToConsole);
     
     super.inserted();
-   
-    // simulate automatic attribute finding & binding
+    
+    // polyfill automatic attribute finding & binding
+    _polyfillBinding();
+    
+    _bindPlaces();
+    
+    place.value = new ProfilesPlace();
+    
+    Observable.dirtyCheck();
+  } 
+  
+  _polyfillBinding(){
+
     showcaseRpc = this.shadowRoot.query('#showcase-rpc').xtag;
     showcaseCodec = this.shadowRoot.query('#showcase-codec').xtag;
     showcaseSocket = this.shadowRoot.query('#showcase-socket').xtag;
@@ -102,10 +113,15 @@ class EverydayShowcase extends PolymerElement with ObservableMixin {
     showcaseSocket.onOffline.listen((data){
       setOffline();
     });
-    
-    Observable.dirtyCheck();
-  } 
+  }
   
+  _bindPlaces(){
+    bindProperty(place, const Symbol('value'),(){
+      isProfilePlace = place.value is ProfilePlace;
+      isProfilesPlace = place.value is ProfilesPlace;
+      Observable.dirtyCheck();
+    });
+  }
   
   profileLoaded(event,  detail, target){
     _LOGGER.info('Profile loaded');
@@ -132,6 +148,11 @@ class EverydayShowcase extends PolymerElement with ObservableMixin {
     profileBuffer = new List();
     profilePersist.changed = profileChanged;
     profileObserver.changed = profileBuffer;
+    Observable.dirtyCheck();
+  }
+  
+  addProfile(event){
+    place.value = new ProfilePlace.newProfile();
     Observable.dirtyCheck();
   }
   
@@ -171,8 +192,6 @@ class EverydayShowcase extends PolymerElement with ObservableMixin {
   setOnline(){
     _LOGGER.info('Server has come online');
     online = true;
-   // print(this.shadowRoot.children);
-   // loadProfile.entityManager = showcaseEntityManager;
     Observable.dirtyCheck();
   }
   

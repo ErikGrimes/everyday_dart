@@ -23,21 +23,13 @@ class _DisposableRouter extends Router {
 @CustomTag('everyday-place-history')
 class PlaceHistory extends PolymerElement with ObservableMixin {
 
-  static final UrlPattern _anything = new UrlPattern(r'/(.*)');
+  static final UrlPattern _ANYTHING = new UrlPattern(r'/(.*)');
  
    StreamSubscription _selfSub;
    StreamSubscription _placeSub;
   
    @observable
    ObservableBox place;
-   
-   /*
-   ObservableBox<Place> get place => _place;
-   
-   set place(value){
-     _place = this.notifyPropertyChange(const Symbol('place'), _place, value);
-   }
-   */
    
    Transformer<String,Place> transformer;
   
@@ -51,7 +43,7 @@ class PlaceHistory extends PolymerElement with ObservableMixin {
   _configure(){
     if(_requiredAttributesSet){
       _router = new _DisposableRouter();   
-      _router.addHandler(_anything, _handle); 
+      _router.addHandler(_ANYTHING, _handle); 
       _router.listen();
       _placeSub = place.changes.listen((crs){
         _router.gotoPath(transformer.forward(place.value),'');
@@ -79,12 +71,11 @@ class PlaceHistory extends PolymerElement with ObservableMixin {
     }
   }
 
-  
   _handle(String location){
-    print('_handle($location) current place =${place.value}');
     var next = transformer.reverse(location); 
     if(place.value != next){
       place.value = next;
+      Observable.dirtyCheck();
     }
   }
   

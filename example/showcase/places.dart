@@ -19,7 +19,7 @@ class ProfilesPlace extends Place {
 class ProfilePlace extends Place {
     final String key;    
     ProfilePlace(this.key);
-    
+    ProfilePlace.newProfile(): this('');
     operator ==(other){
       if(identical(this,other)) return true;
       if(other is! ProfilePlace) return false;
@@ -45,7 +45,7 @@ class ProfilesPlaceTransformer extends Transformer<String, Place>{
 
 class ProfilePlaceTransformer extends Transformer<String, Place>{
   
-  UrlPattern _pattern = new UrlPattern(r'/profile/(\d+)');
+  UrlPattern _pattern = new UrlPattern(r'/profile/(\d*)');
    
   String forward(Place p){
     if(p is ProfilePlace){

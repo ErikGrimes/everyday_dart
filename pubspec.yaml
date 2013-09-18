@@ -6,3 +6,4 @@ dependencies:
   polymer: any
   postgresql: any
   route: any
+  serialization: any

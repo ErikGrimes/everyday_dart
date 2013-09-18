@@ -16,7 +16,8 @@ import '../../shared/mirrors/mirrors.dart';
 import '../polymer/polyfills.dart';
 
 @CustomTag('everyday-persistence-find-all')
-class EverydayPersistenceFindAll extends PolymerElement with ObservableMixin, CustomEventsMixin, AsynchronousEventsMixin {
+class EverydayPersistenceFindAll extends PolymerElement 
+  with ObservableMixin, CustomEventsMixin, AsynchronousEventsMixin {
   
   static const Symbol AUTO = const Symbol('auto');
   static const Symbol ENTITY_TYPE = const Symbol('entityType');
@@ -32,6 +33,7 @@ class EverydayPersistenceFindAll extends PolymerElement with ObservableMixin, Cu
   @observable
   Type entityType;
   
+  @observable
   List results;
   
   @observable
@@ -66,8 +68,9 @@ class EverydayPersistenceFindAll extends PolymerElement with ObservableMixin, Cu
   go(){
     if(_requiredAttributesSet){
       entityManager.findAll(convertSymbolToString(reflectClass(entityType).simpleName)).then((results){
-        this.results = this.notifyPropertyChange(RESULTS, this.results, results);
+        this.results = results;
         this.dispatchSuccess(results);
+        Observable.dirtyCheck();
       }).catchError((error){
         this.dispatchError(error);
       });

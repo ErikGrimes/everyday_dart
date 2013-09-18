@@ -5,8 +5,16 @@
 library everyday.shared.persistence.entity_manager;
 
 import 'dart:async';
+
 import 'package:observe/observe.dart';
+
 import '../patch/patch.dart';
+
+
+class EntityNotFoundException implements Exception {
+  final message;
+  EntityNotFoundException(key): message = 'Entity matching [${key.toString()}] not found';
+}
 
 abstract class Entity implements Observable {
   var key;

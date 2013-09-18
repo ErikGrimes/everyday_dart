@@ -109,18 +109,23 @@
       <template repeat='{{profiles}}'>
       </template>
    </template>
+   
     <template if='{{isProfilePlace}}'>
-      profile
-      <!--
-      <everyday-persistence-find-by-key 
-        entity-manager='{{showcaseEntityManager}}' 
-        entity-type='{{profileType}}' 
-        entity-key='{{profileKey}}'
-        on-everyday-success='{{profileLoaded}}' 
-        auto='{{true}}'
-        create='{{true}}'>
-        </everyday-persistence-find-by-key> 
-        -->
+     <everyday-persistence-find-by-key 
+          entity-manager='{{showcaseEntityManager}}' 
+          entity-type='{{profileType}}' 
+          entity-key='{{profileKey}}'
+          on-everyday-success='{{profileLoaded}}' 
+          auto='{{true}}'
+          create-if-absent='{{true}}'
+          on-everyday-success='{{profileLoaded}}'
+          on-everyday-error='{{profileNotLoaded}}'>
+        </everyday-persistence-find-by-key>
+        
+        <template if='{{profile}}'>
+          profile
+        </template>
+        
     </template>
   </template>
 

@@ -16,43 +16,42 @@ import '../../shared/mirrors/mirrors.dart';
 import '../polymer/polyfills.dart';
 
 @CustomTag('everyday-persistence-find-by-key')
-class EverydayPersistenceFindByKey extends PolymerElement with ChangeNotifierMixin, CustomEventsMixin, AsynchronousEventsMixin {
+class EverydayPersistenceFindByKey extends PolymerElement 
+with ObservableMixin, CustomEventsMixin, AsynchronousEventsMixin {
   
   static const Symbol ENTITY_KEY = const Symbol('entityKey');
   static const Symbol ENTITY_TYPE = const Symbol('entityType');
   static const Symbol ENTITY_MANAGER= const Symbol('entityManager');
   static const Symbol ENTITY = const Symbol('entity');
+  static const Symbol NEW_IF_ABSENT = const Symbol('newIfAbsent');
+  static const Symbol AUTO = const Symbol('auto');
   
   StreamSubscription _selfSub;
-  var _entityKey;
-  Type _entityType;
-  Entity _entity;
-  EntityManager _entityManager;
   Map _subs = {};
   
-  int get entityKey => _entityKey;
+  @observable
+  bool newIfAbsent = true;
   
-  set entityKey(var value){
-    _entityKey = this.notifyPropertyChange(ENTITY_KEY, _entityKey, value);
-  }
-  
-  Type get entityType => _entityType;
-  
-  set entityType(Type value){
-    _entityType = this.notifyPropertyChange(ENTITY_TYPE, _entityType, value);
-  }
-  
-  Entity get entity => _entity;
+  @observable
+  bool auto;
 
-  EntityManager get entityManager => _entityManager;
+  @observable
+  var entityKey;
   
-  set entityManager(EntityManager value){
-    _entityManager = this.notifyPropertyChange(ENTITY_MANAGER, _entityManager, value);
-  }
+  @observable
+  Type entityType;
   
+  @observable
+  Entity entity;
+  
+  @observable
+  EntityManager entityManager;
+
   inserted(){
-    _configure(); 
     _selfSub = this.changes.listen(_propertyChanged);
+    if(auto){
+      go();
+    }
   }
   
   removed(){
@@ -62,48 +61,48 @@ class EverydayPersistenceFindByKey extends PolymerElement with ChangeNotifierMix
   
   _propertyChanged(List<ChangeRecord> records){
     for(var cr in records){
-      if(_changeRequiresReconfigure(cr)){
-        _unconfigure();
-        _configure();
+      if(_isExternallySetProperty(cr)){
+        if(auto){
+          go();
+        }
         break;
       }
     }
   }
   
-  _changeRequiresReconfigure(cr){
-    return cr.field == ENTITY_KEY || cr.field == ENTITY_TYPE || cr.field == ENTITY_MANAGER;
+  _isExternallySetProperty(cr){
+    return cr.field == ENTITY_KEY 
+        || cr.field == ENTITY_TYPE 
+        || cr.field == ENTITY_MANAGER 
+        || cr.field == AUTO 
+        || cr.field == NEW_IF_ABSENT;
   }
   
-  _unconfigure(){
-  }
-  
-  _configure(){
+  go(){
     if(_requiredAttributesSet){
-      if(_entityKey != null){
-        entityManager.findByKey(convertSymbolToString(reflectClass(_entityType).simpleName), [_entityKey]).then((results){
+      if(entityKey != null){
+        entityManager.findByKey(convertSymbolToString(reflectClass(entityType).simpleName), [entityKey]).then((results){
           results.toList().then((list){
             if(list.isNotEmpty){
-              _entity = list[0]; 
-              _entity = this.notifyPropertyChange(ENTITY, _entity, list[0]);
-              this.dispatchSuccess(_entity);
+              entity = list[0];    
+              this.dispatchSuccess(entity);
+              Observable.dirtyCheck();
             }
           });
         }, 
           onError:(error){
             this.dispatchError(error);
         });
+      } else if(newIfAbsent) {
+        entity = reflectClass(entityType).newInstance(const Symbol(''), []).reflectee;
+        this.dispatchSuccess(entity);
+        Observable.dirtyCheck();
       } else {
-        _entity = this.notifyPropertyChange(ENTITY, _entity, 
-            reflectClass(_entityType).newInstance(const Symbol(''), []).reflectee);
-        this.dispatchSuccess(_entity);
+        this.dispatchError(new EntityNotFoundException(entityKey));
       }
     }
   }
   
   get _requiredAttributesSet => entityManager != null && entityType != null;
-  
-  set onEverydaySuccess(value){
-    super.onEverydaySuccess = value;
-  }
   
 }

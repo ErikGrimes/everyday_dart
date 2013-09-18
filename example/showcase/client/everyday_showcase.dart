@@ -132,6 +132,12 @@ class EverydayShowcase extends PolymerElement with ObservableMixin {
     Observable.dirtyCheck();
   }
   
+  profileNotLoaded(event,  detail, target){
+    _LOGGER.info('Profile not loaded [$detail]');
+    profile = target.xtag.entity; 
+    Observable.dirtyCheck();
+  }
+  
   profilesLoaded(event,  detail, target){
     _LOGGER.info('Profiles loaded');
     profiles = target.xtag.results; 

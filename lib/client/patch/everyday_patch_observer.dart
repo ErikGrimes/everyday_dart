@@ -53,6 +53,7 @@ class EverydayPatchObserver extends PolymerElement with
   _configure(){
     if(observe != null){
       new ObjectPatchObserver(observe).changes.listen((patches){
+        print(patches);
         changed.addAll(patches);
       });
     }

@@ -89,28 +89,38 @@
   <everyday-place-history transformer='{{placesTransformer}}' place='{{place}}'>
   </everyday-place-history>
   
-  <template if='{{displayUserAccess}}'>                    
+  <template if='{{displayUserAccess}}'> 
+                     
     <everyday-user-access 
       service='{{showcaseUserService}}' 
       on-everyday-sign-in='{{signedIn}}'>
     </everyday-user-access>
+    
   </template>
   
   <template if='{{displayMain}}'>
+    
     <template if='{{isProfilesPlace}}'>
+      
       <button on-click='addProfile'>add</button>
+      
       <everyday-persistence-find-all 
         entity-manager='{{showcaseEntityManager}}' 
         entity-type='{{profileType}}' 
         on-everyday-success='{{profilesLoaded}}' 
         auto='{{true}}'>
       </everyday-persistence-find-all> 
+      
       <div>profiles found: {{profiles.length}} 
+      
       <template repeat='{{profiles}}'>
+        
       </template>
+      
    </template>
    
     <template if='{{isProfilePlace}}'>
+      
      <everyday-persistence-find-by-key 
           entity-manager='{{showcaseEntityManager}}' 
           entity-type='{{profileType}}' 
@@ -122,14 +132,39 @@
           on-everyday-error='{{profileNotLoaded}}'>
         </everyday-persistence-find-by-key>
         
-        <template if='{{profile}}'>
-          profile
-        </template>
-        
-    </template>
-  </template>
+        <template id='profile-editor' if='{{profile}}'>
+          
+          <everyday-patch-observer 
+            id='profile-observer'
+            observe='{{profile}}'
+            changed='{{profileBuffer}}'>
+          </everyday-patch-observer>
+          
+          <everyday-persistence-persist
+            id='profile-persist'
+            entity-manager='{{showcaseEntityManager}}'
+            entity='{{profile}}'
+            entity-key='{{profileKey}}'
+            entity-type='{{profileType}}'
+            changed='{{profileChanged}}'
+            on-everyday-success='{{profilePersisted}}'
+            on-everyday-error='{{profileNotPersisted}}'>
+          </everyday-persistence-persist>
+          
+          <profile-editor 
+            id='profile-editor' 
+            profile='{{profile}}' 
+            on-everyday-save='{{persistProfile}}'>
+          </profile-editor>
+          
+        </template> <!-- editor -->
+          
+    </template> <!-- profile place -->
+      
+  </template> <!-- display main -->
 
   </template>
 
   <script type='application/dart' src ='everyday_showcase.dart'></script>
+  
   </polymer-element>

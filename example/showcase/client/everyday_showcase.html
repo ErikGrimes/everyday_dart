@@ -111,12 +111,18 @@
         auto='{{true}}'>
       </everyday-persistence-find-all> 
       
-      <div>profiles found: {{profiles.length}} 
+      <template if='{{profiles}}'>
+        <div>profiles found: {{profiles.length}} 
+        <ul>
       
-      <template repeat='{{profiles}}'>
-        
+        <template repeat='{{profile in profiles}}'>
+          <li>
+            <span>profile {{profile.key}}</span>
+            <button on-click='editProfile' profile-key='{{profile.key}}'>edit</button>
+            </li>
+        </template>
+        </ul>
       </template>
-      
    </template>
    
     <template if='{{isProfilePlace}}'>
@@ -124,7 +130,7 @@
      <everyday-persistence-find-by-key 
           entity-manager='{{showcaseEntityManager}}' 
           entity-type='{{profileType}}' 
-          entity-key='{{profileKey}}'
+          entity-key='{{place.value.key}}'
           on-everyday-success='{{profileLoaded}}' 
           auto='{{true}}'
           create-if-absent='{{true}}'

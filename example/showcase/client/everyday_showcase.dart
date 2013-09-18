@@ -165,7 +165,14 @@ class EverydayShowcase extends PolymerElement with ObservableMixin {
     Observable.dirtyCheck();
   }
   
+  editProfile(event){
+    place.value = new ProfilePlace(event.target.attributes['profile-key']);
+    Observable.dirtyCheck();
+  }
+  
   profilePersisted(event, detail, target){
+    profile.key = detail;
+    profileKey = detail;
     _LOGGER.info('Profile persisted');
   }
   

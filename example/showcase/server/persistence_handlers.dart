@@ -6,6 +6,7 @@ library everyday.showcase.persistence_handlers;
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:mirrors';
 
 import 'package:everyday_dart/shared/persistence/entity_manager.dart';
 import 'package:everyday_dart/server/persistence/postgresql_entity_manager.dart';
@@ -64,18 +65,27 @@ class ProfileEntityHandler extends Object with PostgresqlIdGeneratorMixin implem
   
   ProfileEntityHandler(this._codec);
   
-  Future<Entity> findByKey(key, Connection connection, {Duration timeout}) {
+  Future<Entity> findByKey(int key, Connection connection, {Duration timeout}) {
     var completer = new Completer();
     var result;
-    connection.query(FIND_PROFILE_BY_ID,key).listen((row){
+    _LOGGER.finest('Finding profile [$key]');
+    try {
+      connection.query(FIND_PROFILE_BY_ID,{'id':key}).listen((row){
+      _LOGGER.finest('Found profile [$key]');
       result = _codec.decode(row.data);
     }, onDone:(){
       if(!completer.isCompleted){
         completer.complete(result);
       }
     }, onError:(error){
+      _LOGGER.finest('Error finding profile [$key]');
       completer.completeError(error);
     });
+    }catch(error){
+      _LOGGER.finest('Error [$error] finding profile [$key]');
+      completer.completeError(error);
+    }
+    
     return completer.future;
   }
   
@@ -87,9 +97,10 @@ class ProfileEntityHandler extends Object with PostgresqlIdGeneratorMixin implem
     var completer = new Completer();
     if(key == null){
       this.generateId('profile_sequence', connection).then((id){
+        _LOGGER.finest('Inserting profile [$id]');
         var profile = new Profile(key:id);    
         _updateAndSave(INSERT_PROFILE, changes, profile, connection).then((_){
-          _cache[key] = profile;
+          _cache[id] = profile;
           completer.complete(id);
         }).catchError((error){
           completer.completeError(error);
@@ -98,18 +109,24 @@ class ProfileEntityHandler extends Object with PostgresqlIdGeneratorMixin implem
         completer.completeError(error);
       });
     }else {
-      var profile = _profileFor(key, connection); 
-      _cache[key] = profile;
-      _updateAndSave(UPDATE_PROFILE, changes, profile, connection).then((_){
-        completer.complete(key);
-      }).catchError((error) {
+      _LOGGER.finest('Updating profile [$key] with changes [$changes]');
+      _profileFor(key, connection).then((profile){
+        _LOGGER.finest('Found profile [$key]');
+        _cache[key] = profile;
+        _updateAndSave(UPDATE_PROFILE, changes, profile, connection).then((_){
+          completer.complete(key);
+        }).catchError((error) {
+          completer.completeError(error);
+        });
+      }).catchError((error){
         completer.completeError(error);
       });
+      
     }
     return completer.future;
   }
   
-  Future<List<Entity>> findByKeys(keys, connection){
+  Future<List<Entity>> findByKeys(keys, connection, {timeout}){
     var completer = new Completer();
     List results = [];
     connection.query(_buildFindByKeysSql(FIND_PROFILES_BY_ID, keys.length),keys).listen((row){
@@ -146,13 +163,15 @@ class ProfileEntityHandler extends Object with PostgresqlIdGeneratorMixin implem
     if(profile != null){
       return new Future.value(profile); 
     }
-    return findByKey([key], connection);
+    _LOGGER.finest('Profile [$key] not in cache');
+    return findByKey(key, connection);
   }
   
   Future _updateAndSave(sql, changes, profile, connection){
     changes.forEach((cr){
       cr.apply(profile);
     });
+
     return connection.execute(sql,{'id': profile.key,'data':_codec.encode(profile)});
     
   }

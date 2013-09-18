@@ -48,6 +48,7 @@ class PlaceHistory extends PolymerElement with ObservableMixin {
       _router.addHandler(_ANYTHING, _handle); 
       _router.listen();
       _placeSub = place.changes.listen((crs){
+        print(place.value);
         _router.gotoPath(transformer.forward(place.value),'');
       });
     }

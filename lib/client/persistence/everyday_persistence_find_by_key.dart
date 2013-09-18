@@ -33,7 +33,7 @@ with ObservableMixin, CustomEventsMixin, AsynchronousEventsMixin {
   bool newIfAbsent = true;
   
   @observable
-  bool auto;
+  bool auto = true;
 
   @observable
   var entityKey;
@@ -55,9 +55,9 @@ with ObservableMixin, CustomEventsMixin, AsynchronousEventsMixin {
   }
   
   removed(){
+    print('removed');
     _selfSub.cancel();
   }
-  
   
   _propertyChanged(List<ChangeRecord> records){
     for(var cr in records){
@@ -81,16 +81,11 @@ with ObservableMixin, CustomEventsMixin, AsynchronousEventsMixin {
   go(){
     if(_requiredAttributesSet){
       if(entityKey != null){
-        entityManager.findByKey(convertSymbolToString(reflectClass(entityType).simpleName), [entityKey]).then((results){
-          results.toList().then((list){
-            if(list.isNotEmpty){
-              entity = list[0];    
-              this.dispatchSuccess(entity);
-              Observable.dirtyCheck();
-            }
-          });
-        }, 
-          onError:(error){
+        entityManager.findByKey(convertSymbolToString(reflectClass(entityType).simpleName), entityKey).then((result){
+            entity = result;
+            this.dispatchSuccess(entity);
+            Observable.dirtyCheck();
+        }).catchError((error){
             this.dispatchError(error);
         });
       } else if(newIfAbsent) {

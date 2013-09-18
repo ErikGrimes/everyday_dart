@@ -17,9 +17,9 @@ class ProfilesPlace extends Place {
 }
 
 class ProfilePlace extends Place {
-    final String key;    
+    final key;    
     ProfilePlace(this.key);
-    ProfilePlace.newProfile(): this('');
+    ProfilePlace.newProfile(): this(null);
     operator ==(other){
       if(identical(this,other)) return true;
       if(other is! ProfilePlace) return false;
@@ -45,17 +45,27 @@ class ProfilesPlaceTransformer extends Transformer<String, Place>{
 
 class ProfilePlaceTransformer extends Transformer<String, Place>{
   
-  UrlPattern _pattern = new UrlPattern(r'/profile/(\d*)');
+  UrlPattern _pattern = new UrlPattern(r'/profile/((new)|(\d+))');
    
   String forward(Place p){
     if(p is ProfilePlace){
-      return '/profile/${p.key}';
+      if(p.key != null){
+        return '/profile/${p.key.toString()}';
+      }else {
+        return '/profile/new';
+      }
     }
   }
   Place reverse(String t){
     if(_pattern.matches(t)){
       var segments = _pattern.parse(t);
-      return new ProfilePlace(segments[0]);
+      if(segments[0].isNotEmpty){
+        if(segments[0] == 'new'){
+          return new ProfilePlace.newProfile();
+        }else {
+          return new ProfilePlace(int.parse(segments[0]));
+        }
+      }
     }
     return null;
   }

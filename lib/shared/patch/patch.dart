@@ -6,9 +6,11 @@ library everyday.shared.patch.patch;
 
 import 'dart:async';
 import 'dart:mirrors';
+
 import 'package:logging/logging.dart';
 import 'package:observe/observe.dart';
 import 'package:unmodifiable_collection/unmodifiable_collection.dart';
+
 import '../mirrors/mirrors.dart';
 
 
@@ -108,6 +110,8 @@ class _MutableFieldsScan {
   
   static final Map<ClassMirror, _MutableFieldsScan> _cache = {};
   
+  static final OBSERVABLE_ANNOTATION = reflect(observable);
+  
   final ClassMirror type;
   
   Set _mutableFields;
@@ -127,13 +131,28 @@ class _MutableFieldsScan {
     InterfacesScanner scanner = new InterfacesScanner(type); 
     var getters = new Set();
     var setters = new Set();
+    var variables = new Set();
     for(ClassMirror cm in scanner){  
       _LOGGER.finest('Scanning ${cm.simpleName}');
-      getters.addAll(cm.getters.keys);
-      setters.addAll(cm.setters.keys.map((k) => _toGetterSymbol(k)));
+      cm.getters.forEach((symbol, mirror){
+        if(!mirror.isPrivate){
+          getters.add(symbol);
+        }
+      });
+      cm.setters.forEach((symbol, mirror){
+        if(!mirror.isPrivate){
+          setters.add(symbol);
+        }
+      });
+      cm.variables.forEach((symbol,mirror){
+        if(!mirror.isFinal && !mirror.isPrivate){
+            variables.add(symbol);
+        }
+      });
     } 
-    _mutableFields = new UnmodifiableSetView(getters.intersection(setters));
+    _mutableFields = new UnmodifiableSetView(getters.intersection(setters).union(variables));
   }
+  
   
   _toGetterSymbol(symbol){
     var symbolString = convertSymbolToString(symbol);
@@ -160,7 +179,7 @@ class _ObjectBinding {
       
       //set initial bindings
       var value = mirror.getField(s).reflectee;
-      if(value != null){
+      if(value != null && value is Observable){
         _bindings[s] = _bindingFor(_appendToPath(path, s), value, sink);
       }
     });
@@ -175,7 +194,9 @@ class _ObjectBinding {
           var value = mirror.getField(cr.field).reflectee;
           if(value != null){
             var target = _appendToPath(path, cr.field); 
-            _bindings[cr.field] = _bindingFor(target, value, sink);
+            if(value is Observable){
+              _bindings[cr.field] = _bindingFor(target, value, sink);
+            }
             records.add(new PropertyPatchRecord(target, value));
           }
         }
@@ -243,7 +264,7 @@ class _ListBinding {
  * TODO Investigate versoning records to make it easy to tell if two data 
  * structures are equal without having to compare them.
  * 
- * This could probably be more like json patch, but we're constrained by
+ * This could probably be more like json patch, but I'm constrained by
  * observe.
  * 
  */
@@ -273,7 +294,7 @@ class ObjectPatchObserver {
   
 }
 
-_bindingFor(path, observable, sink){
+_bindingFor(path, Observable observable, sink){
   if(observable is ObservableList){
     return new _ListBinding(path,observable, sink);
   } else if(observable is Observable){

@@ -16,7 +16,6 @@ import 'package:everyday_dart/shared/isolate/isolate.dart';
 import 'package:everyday_dart/shared/async/stream.dart';
 import 'package:postgresql/postgresql_pool.dart';
 
-
 import 'persistence_handlers.dart';
 import '../shared/codec.dart';
 

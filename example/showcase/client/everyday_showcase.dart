@@ -129,6 +129,7 @@ class EverydayShowcase extends PolymerElement with ObservableMixin {
   profileLoaded(event,  detail, target){
     _LOGGER.info('Profile loaded');
     profile = target.xtag.entity; 
+    profileKey = target.xtag.entity.key;
     Observable.dirtyCheck();
   }
   
@@ -212,8 +213,6 @@ class EverydayShowcase extends PolymerElement with ObservableMixin {
   }
   
 }
-
-
 
 _logToConsole(LogRecord lr){
   var json = new Map();

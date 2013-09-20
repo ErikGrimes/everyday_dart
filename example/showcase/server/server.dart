@@ -43,18 +43,14 @@ _bindServerSocket(){
 _listenForRequests(socket){
     HttpServer server = new HttpServer.listenOn(socket);
     server.transform(new eio.WebSocketTransformer())
-      .transform(new eio.HandleInNewFunctionIsolateTransformer(
+      .transform(new eio.HandleInCurrentIsolateTransformer(
           new EverydayShowcaseCodec(), 
-          new EverydayShowcaseTransferableMessageHandlerFactory()))
+          new EverydayShowcaseMessageHandlerFactory()))
             .listen((disposer){
       print(disposer);
     });
 }
 
-class EverydayShowcaseMessageHandlerMixin {
-  
-
-}
 
 class EverydayShowcaseTransferableMessageHandlerFactory implements TransferableMessageHandlerFactory {
   
@@ -103,9 +99,13 @@ abstract class EverydayShowcaseClientMixin {
 
 class EverydayShowcaseTransferableMessageHandler extends Object with EverydayShowcaseClientMixin implements Transferable<MessageHandler> {
   
+  static final Logger _LOGGER = new Logger('everyday.showcase.EverydayShowcaseTransferableMessageHandler');
+  
   Future<MessageHandler> revive() {
+    _LOGGER.info('Reviving MessageHandler');
     var completer = new Completer();
     enter().then((pool){
+      _LOGGER.info('Entered environment');
       CallRouter router = new CallRouter();
       router.registerEndpoint('user', new TransientUserService());
       var handlers = {'Profile': new ProfileEntityHandler(new EverydayShowcaseCodec())};  
@@ -116,6 +116,8 @@ class EverydayShowcaseTransferableMessageHandler extends Object with EverydaySho
         leave();
       });
       completer.complete(handler);
+    }).catchError((error){
+      _LOGGER.info('Revive failed [$error]');
     });
     return completer.future;
   }

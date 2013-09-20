@@ -88,6 +88,7 @@ class HandleInCurrentIsolateTransformer extends StreamEventTransformer<io.WebSoc
     _handlerFactory.create().then((handler){
       var decoderStream = new ConverterStream(_codec.decoder);
       decoderStream.pipe(handler); 
+      client.pipe(decoderStream);
       var encoderStream = new ConverterStream(_codec.encoder);
       encoderStream.pipe(client);
       handler.pipe(encoderStream);

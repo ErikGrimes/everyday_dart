@@ -6,7 +6,6 @@ library everyday.showcase.server.server;
 
 import 'dart:io';
 import 'dart:async';
-import 'dart:isolate';
 
 import 'package:everyday_dart/server/rpc/message_handler.dart';
 import 'package:logging/logging.dart';
@@ -17,6 +16,7 @@ import 'package:everyday_dart/server/io/message_handler.dart';
 import 'package:postgresql/postgresql_pool.dart';
 
 import 'persistence_handlers.dart';
+
 import '../shared/codec.dart';
 
 final Logger _LOGGER = new Logger('server');

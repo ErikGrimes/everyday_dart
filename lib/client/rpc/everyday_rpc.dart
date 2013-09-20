@@ -13,7 +13,7 @@ import 'package:polymer/polymer.dart';
 
 import '../../shared/rpc/messages.dart';
 import '../../shared/rpc/invoker.dart';
-import '../../shared/async/stream.dart';
+import '../../shared/convert/stream.dart';
 
 import '../io/everyday_socket.dart';
 

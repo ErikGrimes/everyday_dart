@@ -12,8 +12,8 @@ import 'package:everyday_dart/server/rpc/message_handler.dart';
 import 'package:logging/logging.dart';
 import 'package:everyday_dart/server/user/transient_user_service.dart';
 import 'package:everyday_dart/server/persistence/postgresql_entity_manager.dart';
-import 'package:everyday_dart/shared/isolate/isolate.dart';
-import 'package:everyday_dart/shared/async/stream.dart';
+import 'package:everyday_dart/server/io/websocket.dart' as eio;
+import 'package:everyday_dart/server/io/message_handler.dart';
 import 'package:postgresql/postgresql_pool.dart';
 
 import 'persistence_handlers.dart';
@@ -39,29 +39,88 @@ _bindServerSocket(){
   return ServerSocket.bind('localhost', 8080);
 }
 
+
 _listenForRequests(socket){
     HttpServer server = new HttpServer.listenOn(socket);
-    server.listen(_handleRequest);
+    server.transform(new eio.WebSocketTransformer())
+      .transform(new eio.HandleInNewFunctionIsolateTransformer(
+          new EverydayShowcaseCodec(), 
+          new EverydayShowcaseTransferableMessageHandlerFactory()))
+            .listen((disposer){
+      print(disposer);
+    });
 }
 
-_handleRequest(request){
- 
-  if(WebSocketTransformer.isUpgradeRequest(request)){
-      _LOGGER.info('Upgrading websocket');
-      _addCorsHeaders(request.response);
-      WebSocketTransformer.upgrade(request).then((_handleNewClient));
-   }else {
-     _LOGGER.info('Discarding regular http request');
-     request.response.close();
-   }
-    
+class EverydayShowcaseMessageHandlerMixin {
+  
+
 }
 
-void _addCorsHeaders(HttpResponse res) {
-  res.headers.add("Access-Control-Allow-Origin", "*, ");
-  res.headers.add("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
-  res.headers.add("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+class EverydayShowcaseTransferableMessageHandlerFactory implements TransferableMessageHandlerFactory {
+  
+  Future<Transferable<MessageHandler>> create() {
+    return new Future.value(new EverydayShowcaseTransferableMessageHandler());  
+  }
+  
 }
+
+class EverydayShowcaseMessageHandlerFactory implements MessageHandlerFactory {
+  
+  Future<MessageHandler> create() {
+    return new EverydayShowcaseTransferableMessageHandler().revive();
+  }
+  
+}
+
+abstract class EverydayShowcaseClientMixin {
+
+  static int _poolMembers = 0;
+  static Pool _pool;
+
+  enter(){
+    var completer = new Completer();
+    if(_pool == null){
+      _pool = new Pool(_databaseUrl);
+      _pool.start().then((_){
+        completer.complete(_pool);
+      }).catchError((error){
+        completer.completeError(error);
+      });
+    }else {
+      completer.complete(_pool);
+    }
+    return completer.future;
+  }
+
+  leave(){
+    _poolMembers--;
+    if(_poolMembers == 0){
+      _pool.destroy();
+      _pool = null;
+    }
+  }
+}
+
+class EverydayShowcaseTransferableMessageHandler extends Object with EverydayShowcaseClientMixin implements Transferable<MessageHandler> {
+  
+  Future<MessageHandler> revive() {
+    var completer = new Completer();
+    enter().then((pool){
+      CallRouter router = new CallRouter();
+      router.registerEndpoint('user', new TransientUserService());
+      var handlers = {'Profile': new ProfileEntityHandler(new EverydayShowcaseCodec())};  
+      var entityManager = new PostgresqlEntityManagerService(pool, handlers);
+      router.registerEndpoint('entity-manager', entityManager);
+      var handler = new RpcMessageHandler(router);
+      handler.done.whenComplete((){
+        leave();
+      });
+      completer.complete(handler);
+    });
+    return completer.future;
+  }
+}
+
 
 _logToConsole(LogRecord lr){
   var json = new Map();
@@ -72,94 +131,7 @@ _logToConsole(LogRecord lr){
   print(json);
 }
 
-_handleNewClient(WebSocket client){
- 
-  var localReceive = new ReceivePort();
-  
-  var main = new EverydayShowcaseClientMain(_databaseUrl, localReceive.toSendPort());
-  
-  spawnFunctionIsolate(main).then((isolate){
-    IsolateChannel.bind(localReceive).then((channel){
-      client.pipe(channel).catchError((error){
-        _LOGGER.warning('An error occurred on the client websocket $error', error);
-      }).whenComplete((){
-        _LOGGER.info('Client disconnected');
-        isolate.dispose();
-        client.close();
-      });
-      channel.pipe(client);
-    });
-  });
-}
 
-class EverydayShowcaseClientMain implements FunctionIsolateMain {
- 
-  static final Logger _LOGGER = new Logger('everyday.showcase.server.everyday_showcase_client_main');
-  
-  String _databaseUrl;
-  final SendPort _sendPort;
-  
-  Completer _done;
-  Pool _pool;
-  IsolateChannel _channel;
-  
-  EverydayShowcaseClientMain(this._databaseUrl, this._sendPort);
-  
-  Future run(Future stop) {
-    _LOGGER.finest('Client started');
-    _done = new Completer();
-    stop.then(_dispose);
-    _initializePersistence().then((pool){
-      _LOGGER.finest('Persistence initialized');
-      _pool = pool;
-      var router = new CallRouter();
-      router.registerEndpoint('user', new TransientUserService());
-      var codec = new EverydayShowcaseCodec();
-      var handlers = {'Profile': new ProfileEntityHandler(codec)};  
-      var entityManager = new PostgresqlEntityManagerService(_pool, handlers);
-      router.registerEndpoint('entity-manager', entityManager);
-      var handler = new MessageHandler(router);  
-      
-      IsolateChannel.connect(_sendPort).then((channel){
-        _LOGGER.finest('IsolateChannel connected');
-        _channel = channel;
-         var decoderStream = new ConverterStream(codec.decoder);
-         decoderStream.pipe(handler);
-         _channel.pipe(decoderStream);   
-         var encoderStream = new ConverterStream(codec.encoder);
-         encoderStream.pipe(_channel);
-         handler.pipe(encoderStream);
-      }).catchError((error) {
-        _done.completeError(error);
-      });
-      
-
-    }).catchError((error){
-      _done.completeError((error));
-    });
-    
-    return _done.future;
-  }
-  
-  _dispose(dynamic){
-    _pool.destroy();
-    _channel.close();
-    _done.complete();
-  }
-  
-  _initializePersistence(){
-    var completer = new Completer();
-    var pool = new Pool(this._databaseUrl, min: 1, max: 1);
-    //TODO Pool is starting event when connections fails
-    pool.start().then((v){
-      completer.complete(pool);
-    }).catchError((e){
-      completer.completeError(e);
-    });
-    return completer.future;
-  }
-  
-}
 
 
 

@@ -8,15 +8,18 @@ import 'dart:async';
 import 'dart:mirrors';
 
 import 'package:logging/logging.dart';
+import '../../server/io/message_handler.dart';
 import '../../shared/rpc/invoker.dart';
 import '../../shared/rpc/messages.dart';
 
-class MessageHandler extends Stream<Message> implements StreamSink<Message> {
+class RpcMessageHandler extends Stream implements MessageHandler<Message> {
   static final Logger _LOGGER = new Logger('everyday.rpc.server.message_handler');
   final StreamController _outbound = new StreamController();
   final CallRouter _router;
+  bool _bound = false;
+  bool _isDisposed = false;
 
-  MessageHandler(this._router);
+  RpcMessageHandler(this._router);
   
   _handleCall(Call call){
     _LOGGER.finest('Handling call ${call.callId}');
@@ -43,6 +46,7 @@ class MessageHandler extends Stream<Message> implements StreamSink<Message> {
   }
 
   Future addStream(Stream<Message> stream) {
+    _bound = true;
     //TODO Think about this more carefully, examine sdk websocket_impl.dart
     var completer = new Completer();
     var subscription = stream.listen(
@@ -50,7 +54,10 @@ class MessageHandler extends Stream<Message> implements StreamSink<Message> {
           add(data);
         },
         onDone: () {
-          completer.complete();
+          _bound = false;
+          if(!completer.isCompleted){
+            completer.complete();
+          }
         },
         onError: (error) {
           completer.completeError(error);
@@ -60,7 +67,11 @@ class MessageHandler extends Stream<Message> implements StreamSink<Message> {
   }
 
   Future close() {
-    return _outbound.close();
+    if(!_bound){
+      _isDisposed = true;
+      _outbound.close();
+    }
+    return _outbound.done;
   }
 
   Future get done => _outbound.done;
@@ -68,6 +79,14 @@ class MessageHandler extends Stream<Message> implements StreamSink<Message> {
   StreamSubscription listen(void onData(event), {void onError(error), void onDone(), bool cancelOnError}) {
     return _outbound.stream.listen(onData, onDone: onDone, onError:onError, cancelOnError:cancelOnError);
   }
+  
+  Future get disposed => done;
+  
+  dispose(){
+    close();
+  }
+  
+  bool get isDisposed => _isDisposed;
 }
 
 

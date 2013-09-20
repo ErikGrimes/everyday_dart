@@ -9,14 +9,17 @@ import 'dart:async';
 
 import 'package:logging/logging.dart';
 
+import '../../server/io/message_handler.dart';
+
+
 class IsolateChannel extends Stream implements StreamSink {
   
   StreamController _controller = new StreamController.broadcast();
   SendPort _sendPort;
   ReceivePort _receivePort;
   SendPort _replyTo;
+  bool _bound = false;
   final String _name;
-  Completer _done = new Completer();
   
   IsolateChannel._(this._receivePort, this._sendPort, [name='']):this._name = name{
     _receivePort.receive((message, replyTo){
@@ -52,24 +55,28 @@ class IsolateChannel extends Stream implements StreamSink {
   }
 
   Future addStream(Stream stream) {
+    _bound = true;
     var completer = new Completer();
       stream.listen((data){
         add(data);
       }, onError: (error){
         throw new UnimplementedError();
       }, onDone:(){
+        _bound = false;
         completer.complete();
       });
       return completer.future;
   }
 
   Future close() {
-    _receivePort.close();
-    _done.complete();
-    return new Future.value();
+    if(!_bound){
+      _receivePort.close();
+      _controller.close();
+    }
+    return _controller.done;
   }
 
-  Future get done => _done.future;
+  Future get done => _controller.done;
 
   StreamSubscription listen(void onData(event), {void onError(error), void onDone(), bool cancelOnError}) {
     return _controller.stream.listen(onData, onError:onError, onDone: onDone, cancelOnError:cancelOnError);
@@ -96,13 +103,21 @@ Future<FunctionIsolate>spawnFunctionIsolate(FunctionIsolateMain main, [maxWait =
   return new Future.value(new FunctionIsolate(isolateMainSend, maxWait));
 }
 
-class FunctionIsolate {
+
+
+typedef FunctionIsolateMain FunctionIsolateMainFactory(SendPort sendPort);
+
+class FunctionIsolate implements Disposable {
   
   SendPort _isolateMainSend;
   
   SendPort _controlSend;
   
   Duration _maxWait;
+  
+  Completer _disposed = new Completer();
+  
+  Future get disposed => _disposed.future;
   
   bool _isDisposed = false;
   
@@ -112,6 +127,7 @@ class FunctionIsolate {
 
   dispose(){
     _isolateMainSend.send(new _Die(_maxWait));
+    _disposed.complete();
   }
   
 }

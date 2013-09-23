@@ -15,7 +15,7 @@ import 'package:everyday_dart/server/io/websocket.dart' as eio;
 import 'package:everyday_dart/server/io/message_handler.dart';
 import 'package:postgresql/postgresql_pool.dart';
 
-import 'persistence_handlers.dart';
+import 'postgresql_persistence_handlers.dart';
 
 import '../shared/codec.dart';
 
@@ -109,7 +109,7 @@ class EverydayShowcaseTransferableMessageHandler extends Object with EverydaySho
       CallRouter router = new CallRouter();
       router.registerEndpoint('user', new TransientUserService());
       var handlers = {'Profile': new ProfileEntityHandler(new EverydayShowcaseCodec())};  
-      var entityManager = new PostgresqlEntityManagerService(pool, handlers);
+      var entityManager = new PostgresqlEntityManager(pool, handlers);
       router.registerEndpoint('entity-manager', entityManager);
       var handler = new RpcMessageHandler(router);
       handler.done.whenComplete((){

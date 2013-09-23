@@ -188,17 +188,17 @@ class PostgresqlEntityManager implements EntityManager {
       }
       
       loaded.then((entity){
+        if(!completer.isCompleted){
+            changes.forEach((cr){
+            cr.apply(entity);
+          }); 
         
-        changes.forEach((cr){
-          cr.apply(entity);
-        }); 
-        
-        handler.update(entity, changes, connection).then((_){  
-          completer.complete(entity.key); 
-        }).catchError((error){ 
-          completer.completeError(error);          
-        });
-        
+          handler.update(entity, changes, connection).then((_){  
+            completer.complete(entity.key); 
+          }).catchError((error){ 
+            completer.completeError(error);          
+          });
+        }
       }).catchError((error){
         completer.completeError(error);
       }).whenComplete((){
@@ -218,6 +218,7 @@ class PostgresqlEntityManager implements EntityManager {
       completer.completeError(new ArgumentError('Unknown type $type'));
     }
     _pool.connect(timeout.inMilliseconds).then((connection){
+      if(!completer.isCompleted){
        handler.findAll(connection)
          .then((results){
            results.forEach((result){
@@ -230,6 +231,9 @@ class PostgresqlEntityManager implements EntityManager {
            .whenComplete((){
               connection.close();  
            });
+      }else {
+        connection.close();
+      }
     }).catchError((error){
       completer.completeError(error);
     });
@@ -244,6 +248,7 @@ class PostgresqlEntityManager implements EntityManager {
     }
 
     _pool.connect(timeout.inMilliseconds).then((connection){
+      if(!completer.isCompleted){
        handler.findByKeys(keys, connection)
          .then((results){
            results.forEach((result){
@@ -256,6 +261,9 @@ class PostgresqlEntityManager implements EntityManager {
            .whenComplete((){
               connection.close();  
            });
+      } else {
+        connection.close();
+      }
     }).catchError((error){
       completer.completeError(error);
     });

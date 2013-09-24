@@ -55,7 +55,6 @@ with ObservableMixin, CustomEventsMixin, AsynchronousEventsMixin {
   }
   
   removed(){
-    print('removed');
     _selfSub.cancel();
   }
   

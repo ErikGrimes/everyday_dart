@@ -34,7 +34,6 @@ abstract class ObjectPatchRecord {
         }
      }
     }
-    print('returning ${mirror.reflectee}');
     return mirror.reflectee;
   }
   

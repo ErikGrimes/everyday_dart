@@ -122,7 +122,10 @@ class EverydayShowcase extends PolymerElement with ObservableMixin {
     bindProperty(place, const Symbol('value'),(){
       isProfilePlace = place.value is ProfilePlace;
       isProfilesPlace = place.value is ProfilesPlace;
-      if(isProfilePlace) profileKey = place.value.key;
+      if(isProfilePlace){
+        profileKey = place.value.key;
+        profileBuffer = [];
+      }
       Observable.dirtyCheck();
     });
   }
@@ -149,14 +152,12 @@ class EverydayShowcase extends PolymerElement with ObservableMixin {
   persistProfile(event, detail, target){
     _LOGGER.info('Persisting profile');
 
-    if(profilePersist == null){
-      profilePersist = this.shadowRoot.query('#profile-persist').xtag;
-    }
-    if(profileObserver == null){
-      profileObserver = this.shadowRoot.query('#profile-observer').xtag;
-    }
+    profilePersist = this.shadowRoot.query('#profile-persist').xtag;
+    profileObserver = this.shadowRoot.query('#profile-observer').xtag;
+
     profileChanged = profileBuffer;
     profileBuffer = new List();
+    
     profilePersist.changed = profileChanged;
     profileObserver.changed = profileBuffer;
     Observable.dirtyCheck();

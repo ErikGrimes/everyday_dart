@@ -17,6 +17,8 @@ import '../../shared/mirrors/mirrors.dart';
 class EverydayPersistencePersist extends PolymerElement with 
   ObservableMixin, CustomEventsMixin, AsynchronousEventsMixin {
   
+  static int nextId = 0;
+  
   static const Symbol ENTITY_MANAGER = const Symbol('entityManager');
   static const Symbol CHANGED = const Symbol('changed');
   
@@ -45,7 +47,9 @@ class EverydayPersistencePersist extends PolymerElement with
   
   bool _changedWhilePending = false;
   
-  inserted(){
+
+ 
+  inserted(){ 
     _selfSub = this.changes.listen(_propertyChanged);
   }
   

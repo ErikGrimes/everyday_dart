@@ -9,33 +9,24 @@ import 'dart:html';
 
 import 'package:logging/logging.dart';
 import 'package:polymer/polymer.dart';
-import 'package:route/client.dart';
 import 'package:polymer_expressions/filter.dart';
 
 import 'places.dart';
 
-final Logger _logger = new Logger('view-router');
-
-class _DisposableRouter extends Router {
-  dispose(){
-    _handlers.clear();
-  }
-}
 
 @CustomTag('everyday-place-history')
 class PlaceHistory extends PolymerElement with ObservableMixin {
 
-  static final UrlPattern _ANYTHING = new UrlPattern(r'/(.*)');
+  final Logger _LOGGER = new Logger('everyday.client.places.everyday_place_history');
  
    StreamSubscription _selfSub;
    StreamSubscription _placeSub;
+   StreamSubscription _locationSub;
   
    @observable
    ObservableBox place;
    
    Transformer<String,Place> transformer;
-  
-  _DisposableRouter _router;
   
   inserted(){
     _configure();
@@ -44,12 +35,11 @@ class PlaceHistory extends PolymerElement with ObservableMixin {
   
   _configure(){
     if(_requiredAttributesSet){
-      _router = new _DisposableRouter();   
-      _router.addHandler(_ANYTHING, _handle); 
-      _router.listen();
+      _locationSub = window.onPopState.listen((_){
+        _locationChanged(window.location.pathname);
+      });
       _placeSub = place.changes.listen((crs){
-        print(place.value);
-        _router.gotoPath(transformer.forward(place.value),'');
+       _placeChanged();
       });
     }
   }
@@ -60,7 +50,7 @@ class PlaceHistory extends PolymerElement with ObservableMixin {
   
   _unconfigure(){
     _cancelPlaceSub();
-    _router.dispose();
+    _locationSub.cancel();
   }
   
   _propertyChanged(List crs){
@@ -74,9 +64,19 @@ class PlaceHistory extends PolymerElement with ObservableMixin {
     }
   }
 
-  _handle(String location){
+  _placeChanged(){
+    _LOGGER.fine('Place change ${place.value}');
+    String placePathname = transformer.forward(place.value);
+    if(placePathname != window.location.pathname){
+      //_router.gotoPath(placePathname,'');
+      window.history.pushState(null, title, placePathname);
+    }
+  }
+  
+  _locationChanged(String location){
     var next = transformer.reverse(location); 
     if(place.value != next){
+      _LOGGER.fine('Location change ${location}');
       place.value = next;
       Observable.dirtyCheck();
     }

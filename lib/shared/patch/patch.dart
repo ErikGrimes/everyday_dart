@@ -26,7 +26,7 @@ abstract class ObjectPatchRecord {
   parent(root){
     var mirror = reflect(root);
     if(_segments.length > 1){
-      for(var s in _segments.sublist(_segments.length-2, _segments.length-1)){
+      for(var s in _segments.sublist(0, _segments.length-1)){
         if(s.isNotEmpty){
           mirror = mirror.getField(new Symbol(s));
         }else {
@@ -34,6 +34,7 @@ abstract class ObjectPatchRecord {
         }
      }
     }
+    print('returning ${mirror.reflectee}');
     return mirror.reflectee;
   }
   

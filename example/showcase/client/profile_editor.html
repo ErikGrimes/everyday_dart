@@ -8,14 +8,81 @@
 
     <fieldset>
       <legend>profile</legend>
-       <label for='fullName'>your full name</label>
-              <input type='text' on-change='changed' value='{{profile.fullName}}' 
-              name='fullName'>
+      
+      <label for='fullName'>your full name</label>
+      <input 
+        type='text' 
+        on-change='changed' 
+        value='{{profile.fullName}}' 
+        name='fullName'>  
+          
+      <label for='bornOn'>your date of birth</label>
+      <input 
+        type='date' 
+        on-change='changed' 
+        value='{{profile.bornOn}}' 
+        name='bornOn'>
 
-              <label for='bornOn'>your date of birth</label>
-              <input type='date' on-change='changed' value='{{profile.bornOn}}' 
-              name='bornOn'>
-    </fieldset>  
+      <label for='addressAs'>your preferred form of address in emails, letters, etc (e.g. Mr. John Smith)</label>
+      <input 
+        type='text' 
+        on-change='changed' 
+        value='{{profile.addressAs}}' 
+        name='addressAs'>  
+        
+        <fieldset>
+          <legend>contact info</legend>
+          
+          <label for='phone'>your preferred contact number</label>
+          <input 
+            type='phone' 
+            on-change='changed' 
+            value='{{profile.contactInfo.phone}}' 
+            name='phone'>  
+            
+          <label for='email'>your preferred email address</label>
+          <input 
+            type='email' 
+            on-change='changed' 
+            value='{{profile.contactInfo.email}}' 
+            name='phone'>    
+            
+            <fieldset>
+              <legend>your mailing address</legend>
+              
+               <label for='streetOrBox'>street/box</label>
+               <input 
+                type='text' 
+                on-change='changed' 
+                value='{{profile.contactInfo.mailingAddress.streetOrBox}}' 
+                name='streetOrBox'>  
+                
+                <label for='city'>city</label>
+               <input 
+                type='text' 
+                on-change='changed' 
+                value='{{profile.contactInfo.mailingAddress.city}}' 
+                name='city'>      
+                
+               <label for='stateOrRegion'>state</label>
+               <input 
+                type='text' 
+                on-change='changed' 
+                value='{{profile.contactInfo.mailingAddress.stateOrRegion}}' 
+                name='stateOrRegion'>   
+                
+               <label for='postalCode'>zip</label>
+               <input 
+                type='text' 
+                on-change='changed' 
+                value='{{profile.contactInfo.mailingAddress.postalCode}}' 
+                name='postalCode'> 
+                
+            </fieldset> 
+            
+        </fieldset>
+        
+       </fieldset>  
 
      <button on-click='save'>save</button>
 </template>

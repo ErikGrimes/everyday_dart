@@ -32,7 +32,7 @@ class Profile extends Object with ObservableMixin implements Entity {
   ContactInfo contactInfo;
   
   Profile({this.key, this.fullName:'',this.addressAs:'', this.bornOn:'', contactInfo}){
-    contactInfo = valueOrDefault(contactInfo, (){return new ContactInfo();});
+    this.contactInfo = valueOrDefault(contactInfo, (){return new ContactInfo();});
   }
   
 }
@@ -53,7 +53,7 @@ class ContactInfo extends Object with ObservableMixin  {
   Address mailingAddress;
   
   ContactInfo({this.email:'', this.phone:'', mailingAddress}){
-    mailingAddress = valueOrDefault(mailingAddress,(){return new Address();});
+    this.mailingAddress = valueOrDefault(mailingAddress,(){return new Address();});
   }
   
 }

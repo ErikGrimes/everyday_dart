@@ -189,8 +189,9 @@ class PostgresqlEntityManager implements EntityManager {
       
       loaded.then((entity){
         if(!completer.isCompleted){
+          print('changes $changes');
             changes.forEach((cr){
-            cr.apply(entity);
+              cr.apply(entity);
           }); 
         
           handler.update(entity, changes, connection).then((_){  

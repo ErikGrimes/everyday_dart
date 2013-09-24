@@ -47,7 +47,6 @@ _listenForRequests(socket){
           new EverydayShowcaseCodec(), 
           new EverydayShowcaseMessageHandlerFactory()))
             .listen((disposer){
-      print(disposer);
     });
 }
 

@@ -21,43 +21,8 @@
   <template bind>
     
   <!-- TODO bind attributes using automatic node finding when it's available.  
-  (https://groups.google.com/forum/#!topic/polymer-dev/TZ8kFTpLRF4). Currently
-  this is being done manually in this components inserted method.
-  
-  This example would then look like:
-  
-  <everyday-showcase-codec 
-    id='showcase-codec'>
-  </everyday-showcase-codec>  
-    
-  <everyday-websocket 
-    id='showcase-socket' 
-    url='{{"ws://localhost:8080"}}'>
-  </everyday-websocket>
-  
-   <everyday-rpc
-    id='showcase-rpc' 
-    codec='{{$.showcase-codec}}'
-    socket='{{$.showcase-socket}}'
-  </everyday-rpc>
-  
-   <everyday-rpc-entity-manager 
-    id='showcase-entity-manager'
-    invoker='{{$.showcase-rpc}}'>
-   </everyday-rpc-entity-manager>
-  
-  <everyday-persistence
-    id='profile-persistence'
-    entity-type='{{profileEntityType}}' 
-    entity-manager='{{$.showcase-entity-manager}}'
-    on-everyday-load='{{profileLoaded}}'>
-
-  </everyday-persistence>
-  
-   <template id='profile-form' if='{{profile}}'>
-      <profile-form profile='{{profile}}' on-change='saveProfile'></profile-form>   
-   </template> 
-  
+  (https://code.google.com/p/dart/issues/detail?id=13172). Currently
+  this is being done manually.
    -->
   <everyday-showcase-codec 
     id='showcase-codec'>

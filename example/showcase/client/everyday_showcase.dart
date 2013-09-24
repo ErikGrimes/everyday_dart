@@ -35,10 +35,10 @@ class EverydayShowcase extends PolymerElement with ObservableMixin {
   var showcaseRpc;
   
   @observable
-  var profilePersist;
+  var _profilePersist;
   
   @observable
-  var profileObserver;
+  var _profileObserver;
   
   @observable
   var showcaseUserService;
@@ -152,14 +152,12 @@ class EverydayShowcase extends PolymerElement with ObservableMixin {
   persistProfile(event, detail, target){
     _LOGGER.info('Persisting profile');
 
-    profilePersist = this.shadowRoot.query('#profile-persist').xtag;
-    profileObserver = this.shadowRoot.query('#profile-observer').xtag;
-
     profileChanged = profileBuffer;
     profileBuffer = new List();
     
-    profilePersist.changed = profileChanged;
-    profileObserver.changed = profileBuffer;
+    this.shadowRoot.query('#profile-persist').xtag.changed = profileChanged;
+    this.shadowRoot.query('#profile-observer').xtag.changed = profileBuffer;
+
     Observable.dirtyCheck();
   }
   

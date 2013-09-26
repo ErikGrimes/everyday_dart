@@ -254,19 +254,11 @@ class _ListBinding {
 }
 
 /**
- * TODO Handle cycles
- * TODO Intelligently handle objects that appear in the graph multiple times
  * TODO Observe observables within lists and maps
  * TODO Support ObservableMap
  * TODO Support Custom data structures
  * TODO extend ChangeNotifierBase if ChangeNotifierMixin makes the lifecycle
  * methods public.
- * TODO Investigate versoning records to make it easy to tell if two data 
- * structures are equal without having to compare them.
- * 
- * This could probably be more like json patch, but I'm constrained by
- * observe.
- * 
  */
 class ObjectPatchObserver {
   
@@ -300,4 +292,95 @@ _bindingFor(path, Observable observable, sink){
   } else if(observable is Observable){
     return new _ObjectBinding(path,observable, sink);
   }   
+}
+
+class _Node {
+  
+  var value;
+  
+  Map<String, _Node> _children;
+  
+  Map<String, _Node> get children {
+    if(_children == null){
+      _children = {};
+    }else {
+    }
+    return _children;
+  }
+  
+}
+
+/**
+ * TODO Look into intelligently summarizing lists
+ */
+class Summarizer {
+
+  _Node _root = new _Node();
+  
+  _Node _mostRecent;
+  String _mostRecentPath;
+  
+  add(ObjectPatchRecord record){
+   
+    var segments = record.path.split('/').sublist(1);
+    
+    var current;
+    
+    if(_mostRecentPath != record.path){
+      current = _root;
+      for(var s in segments){
+     
+        var next = current.children[s];
+        if(next == null){
+          next = new _Node();
+          current.children[s] = next;
+        }
+        current = next;
+        }
+      
+    } else {
+      current = _mostRecent;
+    }
+    
+    _mostRecent = current;
+    
+    _mostRecentPath = record.path;
+    
+    current.children.clear();
+
+    if(record is ListPatchRecord){
+      if(current.value is! List){
+        current.value = [];
+      }
+      current.value.add(record);
+    }else {
+      current.value = record;
+    }
+    
+  }
+  
+  addAll(Iterable<ObjectPatchRecord> records){
+    records.forEach((r){
+      add(r);
+    });
+  }
+  
+  List<ObjectPatchRecord> summarize(){
+    var records = [];
+    var unvisited = new List();
+    unvisited.add(_root);
+    while(unvisited.isNotEmpty){
+      var visit = unvisited.removeAt(0);
+      if(visit.value != null){
+        if(visit.value is! List){
+          records.add(visit.value);
+        }else {
+          records.addAll(visit.value);
+        }
+      }
+      unvisited.addAll(visit.children.values);
+    }
+    return records;
+    
+  }
 }

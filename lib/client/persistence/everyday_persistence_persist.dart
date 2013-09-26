@@ -12,6 +12,7 @@ import 'package:polymer/polymer.dart';
 import '../polymer/polyfills.dart';
 import '../../shared/persistence/entity_manager.dart';
 import '../../shared/mirrors/mirrors.dart';
+import '../../shared/patch/patch.dart';
 
 @CustomTag('everyday-persistence-persist')
 class EverydayPersistencePersist extends PolymerElement with 
@@ -80,9 +81,13 @@ class EverydayPersistencePersist extends PolymerElement with
   }
   
   _persist(){
-    //TODO compact changes targeting the same path
-    _unsaved.addAll(changed);
+    
+    var summarizer = new Summarizer()..addAll(changed);
+    
+    _unsaved.addAll(summarizer.summarize());
+    
     var submit = _unsaved;
+    
     _unsaved = new List();
     _pending = entityManager.persist(convertSymbolToString(reflectClass(entityType).simpleName), entityKey, submit);
     

@@ -18,6 +18,8 @@ const Duration DEFAULT_TIMEOUT = const Duration(seconds:1);
 
 abstract class PostgresqlEntityHandler {
   
+  Entity newInstance();
+  
   Future<Entity> findByKey(key, Connection connection);
   
   Future<List<Entity>> findByKeys(List keys, Connection connection);
@@ -26,7 +28,7 @@ abstract class PostgresqlEntityHandler {
 
   Future namedQuery(String name, Map params, Connection connection);
 
-  Future<Entity> insert(List<ObjectPatchRecord> changes, Connection connection);
+  Future<Entity> insert(Entity entity, List<ObjectPatchRecord> changes, Connection connection);
   
   Future update(Entity entity, List<ObjectPatchRecord> changes, Connection connection);
   
@@ -151,7 +153,11 @@ class PostgresqlEntityManager implements EntityManager {
     
     _pool.connect(timeout.inMilliseconds).then((connection){
       if(!completer.isCompleted){
-       handler.insert(changes, connection).then((result){
+        var entity = handler.newInstance();
+        changes.forEach((change){
+          change.apply(entity);
+        });
+        handler.insert(entity, changes, connection).then((result){
           _cache[_cacheKey(type, result.key)] = result;    
           completer.complete(result.key);
         }).catchError((error) {     
@@ -189,8 +195,8 @@ class PostgresqlEntityManager implements EntityManager {
       
       loaded.then((entity){
         if(!completer.isCompleted){
-            changes.forEach((cr){
-              cr.apply(entity);
+            changes.forEach((change){
+              change.apply(entity);
           }); 
         
           handler.update(entity, changes, connection).then((_){  

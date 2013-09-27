@@ -74,6 +74,10 @@ class ProfileEntityHandler extends Object implements PostgresqlEntityHandler {
   
   ProfileEntityHandler(this._codec);
 
+  Profile newInstance(){
+    return new Profile();
+  }
+  
   Future<List<Entity>> findAll(Connection connection) {
     return connection.query(FIND_ALL_PROFILES).transform(new ProfileConverterTransformer(_codec.decoder)).toList();
   }
@@ -94,13 +98,13 @@ class ProfileEntityHandler extends Object implements PostgresqlEntityHandler {
     return connection.query(appendInSql(FIND_PROFILES_BY_ID, keys.length),keys).transform(new ProfileConverterTransformer(_codec.decoder)).toList();
   }
 
-  Future<Entity> insert(List<ObjectPatchRecord> changes, Connection connection) {
+  Future<Entity> insert(Entity entity, List<ObjectPatchRecord> changes, Connection connection) {
     var completer = new Completer();
     generateSequenceId('profile_sequence', connection).then((id){
       _LOGGER.finest('Inserting profile [$id]');
-      var profile = new Profile(key:id);    
-      connection.execute(INSERT_PROFILE,{'id': profile.key,'data':_codec.encode(profile)}).then((_){
-        completer.complete(profile);
+      entity.key = id;
+      connection.execute(INSERT_PROFILE,{'id': entity.key,'data':_codec.encode(entity)}).then((_){
+        completer.complete(entity);
       }).catchError((error){
         completer.completeError(error);
       });

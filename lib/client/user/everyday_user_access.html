@@ -4,15 +4,30 @@
  details. --> 
 
 <polymer-element name='everyday-user-access' extends='div' 
-attributes='service on-everyday-sign-in' apply-author-styles>
-    <template>
-      <form novalidate>
-        <input type='email' value='email' placeholder='email' id='user-email'>
-        <input type='password' value='password' class='login-field' placeholder='password'>
-        <button on-click='signIn'>sign in</button>
-      </form>
-    </template>
-    <script type='application/dart' src='everyday_user_access.dart'></script>
+attributes='service on-everyday-sign-in'>
+    
+  <template bind>     
+    <form class='form-horizontal' role='form' novalidate>
+      <div class='form-group'>
+        <div class='col-lg-10'>
+          <input type='email' class='form-control' id='email' placeholder='email'>
+        </div>
+      </div>
+      <div class='form-group'>
+        <div class='col-lg-10'>
+          <input type='password' class='form-control' id='password' placeholder='password'>
+        </div>
+      </div>
+      
+      <div class='form-group'>
+        <div class='col-lg-offset-2 col-lg-10'>
+          <button type='submit' class='btn btn-primary btn-large btn-block' on-click='signIn'>Sign in</button>
+        </div>
+      </div>
+    </form>    
+
+  </template>
+  <script type='application/dart' src='everyday_user_access.dart'></script>
 </polymer-element>
 </html>
 

@@ -16,6 +16,8 @@ class EverydayUserAccess extends PolymerElement with CustomEventsMixin, Observab
   
   static final Logger _LOGGER = new Logger('everyday.user.everyday_user_access');
   
+  bool get applyAuthorStyles => true;
+  
   @observable
   String email = '';
   

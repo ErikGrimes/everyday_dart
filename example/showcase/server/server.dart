@@ -24,7 +24,7 @@ final Logger _LOGGER = new Logger('server');
 String _databaseUrl = 'postgres://dev:dev@dev.local:5432/dev';
 
 main(){
-  runZonedExperimental(() {
+  runZoned(() {
    Logger.root.level = Level.ALL;
     Logger.root.onRecord.listen(_logToConsole);
     _LOGGER.info('Server started');

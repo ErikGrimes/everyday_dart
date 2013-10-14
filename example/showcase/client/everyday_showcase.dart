@@ -119,7 +119,7 @@ class EverydayShowcase extends PolymerElement with ObservableMixin {
   }
   
   _bindPlaces(){
-    bindProperty(place, const Symbol('value'),(){
+    onPropertyChange(place, #value,(){
       isProfilePlace = place.value is ProfilePlace;
       isProfilesPlace = place.value is ProfilesPlace;
       if(isProfilePlace){

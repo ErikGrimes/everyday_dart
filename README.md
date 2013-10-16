@@ -24,6 +24,8 @@ postgresql database.  It covers:
 
 ### Running the example
 
+- Patch polymer per my comments in https://code.google.com/p/dart/issues/detail?id=13937 and https://code.google.com/p/dart/issues/detail?id=14060. 
+
 _Configuration is hardcoded in example/showcase/server/server.dart_
 
 - Create a postgresql database

@@ -33,8 +33,8 @@
   <everyday-websocket 
     id='showcase-socket' 
     url='{{"ws://localhost:8080"}}'
-    on-everyday-offline='{{setOffline}}'
-    on-everyday-online='{{setOnline}}'>
+    onEverydaySocketOffline='{{setOffline}}'
+    onEverydaySocketOnline='{{setOnline}}'>
   </everyday-websocket>     
      
  <everyday-rpc
@@ -60,7 +60,7 @@
                      
     <everyday-user-access 
       service='{{showcaseUserService}}' 
-      on-everyday-sign-in='{{signedIn}}'>
+      onEverydaySignIn='{{signedIn}}'>
     </everyday-user-access>
     
   </template>
@@ -72,10 +72,10 @@
       <button on-click='addProfile'>add</button>
       
       <everyday-persistence-find-all 
-        entity-manager='{{showcaseEntityManager}}' 
-        entity-type='{{profileType}}' 
-        on-everyday-success='{{profilesLoaded}}' 
-        on-everyday-error='{{profilesNotLoaded}}' 
+        entityManager='{{showcaseEntityManager}}' 
+        entityType='{{profileType}}' 
+        onEverydaySuccess='{{profilesLoaded}}' 
+        onEverydayError='{{profilesNotLoaded}}' 
         auto='{{true}}'>
       </everyday-persistence-find-all> 
       
@@ -96,14 +96,13 @@
     <template if='{{isProfilePlace}}'>
       
      <everyday-persistence-find-by-key 
-          entity-manager='{{showcaseEntityManager}}' 
-          entity-type='{{profileType}}' 
-          entity-key='{{profileKey}}'
-          on-everyday-success='{{profileLoaded}}' 
+          entityManager='{{showcaseEntityManager}}' 
+          entityType='{{profileType}}' 
+          entityKey='{{profileKey}}'
           auto='{{true}}'
-          create-if-absent='{{true}}'
-          on-everyday-success='{{profileLoaded}}'
-          on-everyday-error='{{profileNotLoaded}}'>
+          createIfAbsent='{{true}}'
+          onEverydaySuccess='{{profileLoaded}}'
+          onEverydayError='{{profileNotLoaded}}'>
         </everyday-persistence-find-by-key>
         
         <template id='profile-editor' if='{{profile}}'>
@@ -116,19 +115,18 @@
           
           <everyday-persistence-persist
             id='profile-persist'
-            entity-manager='{{showcaseEntityManager}}'
-            entity='{{profile}}'
-            entity-key='{{profileKey}}'
-            entity-type='{{profileType}}'
-            changed='{{profileChanged}}'
-            on-everyday-success='{{profilePersisted}}'
-            on-everyday-error='{{profileNotPersisted}}'>
+            entityManager='{{showcaseEntityManager}}'
+            entityKey='{{profileKey}}'
+            entityType='{{profileType}}'
+
+            onEverydaySuccess='{{profilePersisted}}'
+            onEverydayError='{{profileNotPersisted}}'>
           </everyday-persistence-persist>
           
           <profile-editor 
             id='profile-editor' 
             profile='{{profile}}' 
-            on-everyday-save='{{persistProfile}}'>
+            onEverydaySave='{{persistProfile}}'>
           </profile-editor>
           
         </template> <!-- editor -->

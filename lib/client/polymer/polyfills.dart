@@ -65,24 +65,28 @@ abstract class AsynchronousEventsMixin {
   
   dispatchCustomEvent(type, detail);
   
+  @published
   get onEverydayError => customEventHandlers['on-everyday-error'];
   
   set onEverydayError(value){
     customEventHandlers['on-everyday-error'] = value;
   }
   
+  @published
   get onEverydayComplete => customEventHandlers['on-everyday-complete'];
   
   set onEverydayComplete(value){
     customEventHandlers['on-everyday-complete'] = value;
   }
   
+  @published
   get onEverydaySuccess => customEventHandlers['on-everyday-success'];
   
   set onEverydaySuccess(value){
     customEventHandlers['on-everyday-success'] = value;
   }
   
+ 
   Stream get onError {
     if(_onError == null){
       _onError = streamFor('everyday-error');

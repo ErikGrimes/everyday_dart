@@ -16,9 +16,10 @@ class EverydayPatchObserver extends PolymerElement with
   
   static const Symbol OBSERVE = const Symbol('observe');
   
-  @observable
+  @published
   Observable observe;
   
+  @published
   List changed = new List();
   
   StreamSubscription _patches;

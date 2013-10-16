@@ -7,6 +7,8 @@ library everyday.client.io.everyday_socket;
 import 'dart:async';
 import 'dart:html';
 
+import 'package:polymer/polymer.dart';
+
 class SocketState {
   final index;
   final name;
@@ -115,36 +117,42 @@ abstract class EverydaySocketMixin implements EverydaySocket {
   
   Stream<Event> get onStop => _onStop;
   
+  @published
   get onEverydaySocketError => customEventHandlers['on-everyday-socket-error'];
   
   set onEverydaySocketError(value){
     customEventHandlers['on-everyday-socket-error'] = value;
   }
   
+  @published
   get onEverydaySocketMessage => customEventHandlers['on-everyday-socket-message'];
   
   set onEverydaySocketMessage(value){
     customEventHandlers['on-everyday-socket-message'] = value;
   }
   
+  @published
   get onEverydaySocketStart => customEventHandlers['on-everyday-socket-start'];
   
   set onEverydaySocketStart(value){
     customEventHandlers['on-everyday-socket-start'] = value;
   }
   
+  @published
   get onEverydaySocketStop => customEventHandlers['on-everyday-socket-stop'];
   
   set onEverydaySocketStop(value){
     customEventHandlers['on-everyday-socket-stop'] = value;
   }
   
+  @published
   get onEverydaySocketOnline => customEventHandlers['on-everyday-socket-online'];
   
   set onEverydaySocketOnline(value){
     customEventHandlers['on-everyday-socket-online'] = value;
   }
   
+  @published
   get onEverydaySocketOffline => customEventHandlers['on-everyday-socket-offline'];
   
   set onEverydaySocketOffline(value){

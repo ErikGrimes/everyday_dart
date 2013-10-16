@@ -17,20 +17,27 @@ class EverydayRpcCall extends PolymerElement with ObservableMixin, CustomEventsM
  
   Invoker invoker;
   
+  @published
   bool auto = false;
   
+  @published
   String endpoint;
   
+  @published
   String method;
   
+  @published
   InvocationType invocationType;
   
+  @published
   List positionalParameters;
   
   Map namedParameters;
  
+  @published
   int timeout;
   
+  @published
   var result;
   
   bool _inDom = false;

@@ -17,10 +17,10 @@ with ObservableMixin, CustomEventsMixin implements UserService {
   
   static const String DEFAULT_ENDPOINT = 'user';
   
-  @observable
+  @published
   String endpoint = DEFAULT_ENDPOINT;
   
-  @observable
+  @published
   Invoker invoker;
   
   Future<User> signIn(AuthToken token, [timeout= DEFAULT_TIMEOUT]) {

@@ -27,16 +27,16 @@ class EverydayPersistenceFindAll extends PolymerElement
   StreamSubscription _selfSub;
   Map _subs = {};
   
-  @observable
+  @published
   bool auto;
   
-  @observable
+  @published
   Type entityType;
   
-  @observable
+  @published
   List results;
   
-  @observable
+  @published
   EntityManager entityManager;
   
   inserted(){

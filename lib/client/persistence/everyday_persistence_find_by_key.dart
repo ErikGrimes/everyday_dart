@@ -29,22 +29,22 @@ with ObservableMixin, CustomEventsMixin, AsynchronousEventsMixin {
   StreamSubscription _selfSub;
   Map _subs = {};
   
-  @observable
+  @published
   bool newIfAbsent = true;
   
-  @observable
+  @published
   bool auto = true;
 
-  @observable
+  @published
   var entityKey;
   
-  @observable
+  @published
   Type entityType;
   
-  @observable
+  @published
   Entity entity;
   
-  @observable
+  @published
   EntityManager entityManager;
 
   inserted(){

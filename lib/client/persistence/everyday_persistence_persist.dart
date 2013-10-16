@@ -11,7 +11,6 @@ import 'package:polymer/polymer.dart';
 
 import '../polymer/polyfills.dart';
 import '../../shared/persistence/entity_manager.dart';
-import '../../shared/mirrors/mirrors.dart';
 import '../../shared/patch/patch.dart';
 
 @CustomTag('everyday-persistence-persist')
@@ -27,19 +26,20 @@ class EverydayPersistencePersist extends PolymerElement with
   
   static const Duration DEFAULT_TIMEOUT = const Duration(seconds: 1);
   
-  @observable
+  @published
   int timeout;
   
-  @observable
+
+  @published
   List changed = [];
   
-  @observable 
+  @published 
   Type entityType;
   
-  @observable 
+  @published 
   var entityKey;
   
-  @observable
+  @published
   EntityManager entityManager;
   
   List _unsaved = [];
@@ -61,13 +61,15 @@ class EverydayPersistencePersist extends PolymerElement with
   _propertyChanged(List records){
     for(var cr in records){
       if(_isChanged(cr)){
+        print('new changed $changed');
         go();
+        break;
       }
     }  
   }
   
   go(){
-    if(_attributesSet){
+    if(_attributesSet && changed != null && changed.isNotEmpty){
       if(_pending != null){
         _changedWhilePending = true;
       }else {
@@ -89,7 +91,7 @@ class EverydayPersistencePersist extends PolymerElement with
     var submit = _unsaved;
     
     _unsaved = new List();
-    _pending = entityManager.persist(convertSymbolToString(reflectClass(entityType).simpleName), entityKey, submit);
+    _pending = entityManager.persist(MirrorSystem.getName(reflectClass(entityType).simpleName), entityKey, submit);
     
     _pending.then((_){
       if(_changedWhilePending){

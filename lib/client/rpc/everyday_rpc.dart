@@ -38,13 +38,13 @@ class EverydayRpc extends PolymerElement with ObservableMixin implements Invoker
   
   Duration _defaultTimeout = new Duration(milliseconds: 1000);
   
-  @observable
+  @published
   int defaultTimeout = 1000;
   
-  @observable
+  @published
   Codec codec;
   
-  @observable
+  @published
   EverydaySocket socket;
   
   inserted(){

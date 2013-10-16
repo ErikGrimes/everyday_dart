@@ -18,17 +18,20 @@ class EverydayUserAccess extends PolymerElement with CustomEventsMixin, Observab
   
   bool get applyAuthorStyles => true;
   
-  @observable
+  @published
   String email = '';
   
-  @observable
+  @published
   String password = '';
   
-  @observable
+  @published
   UserService service;
   
+  @published
+  get onEverydaySignIn => this.customEventHandlers['on-everyday-sign-in'];
+  
   set onEverydaySignIn(value){
-    customEventHandlers['on-everyday-sign-in'] = value;
+    this.customEventHandlers['on-everyday-sign-in'] = value;
   }
   
   signIn(event){
@@ -38,7 +41,7 @@ class EverydayUserAccess extends PolymerElement with CustomEventsMixin, Observab
       _LOGGER.info('Signin successful');
       this.dispatchCustomEvent('everyday-sign-in', user);
     }).catchError((error){
-      _LOGGER.info('Signin unsuccessful');
+      _LOGGER.info('Signin unsuccessful', error);
     });  
   }
 

@@ -23,9 +23,10 @@ class PlaceHistory extends PolymerElement with ObservableMixin {
    StreamSubscription _placeSub;
    StreamSubscription _locationSub;
   
-   @observable
+   @published
    ObservableBox place;
    
+   @published
    Transformer<String,Place> transformer;
   
   inserted(){
@@ -45,7 +46,7 @@ class PlaceHistory extends PolymerElement with ObservableMixin {
   }
   
   bool get _requiredAttributesSet {
-    return place != null;
+    return place != null && transformer != null;
   }
   
   _unconfigure(){

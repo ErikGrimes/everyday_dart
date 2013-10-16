@@ -10,10 +10,11 @@ import 'package:everyday_dart/client/polymer/polyfills.dart';
 import '../shared/model.dart';
 
 @CustomTag('profile-editor')
-class ProfileEditor extends PolymerElement with ObservableMixin, CustomEventsMixin {
+class ProfileEditor extends PolymerElement with CustomEventsMixin {
   
   Stream _onSave;
   
+  @published
   get onEverydaySave => customEventHandlers['on-everyday-save'];
   
   set onEverydaySave(value){
@@ -27,7 +28,7 @@ class ProfileEditor extends PolymerElement with ObservableMixin, CustomEventsMix
     return _onSave;
   }
   
-  @observable
+  @published
   Profile profile; 
   
   changed(e){

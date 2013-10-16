@@ -24,25 +24,25 @@ class EverydayRpcSignin extends PolymerElement with
   
   bool _inDom;
   
-  @observable
+  @published
   bool auto = false;
   
-  @observable
+  @published
   Invoker invoker;
   
-  @observable
+  @published
   AuthToken token;
   
-  @observable
+  @published
   User user;
   
-  @observable
+  @published
   int timeout = 1000;
   
-  @observable
+  @published
   Map positionalParameters;
   
-  @observable
+  @published
   String endpoint;
   
   StreamSubscription _selfSub;

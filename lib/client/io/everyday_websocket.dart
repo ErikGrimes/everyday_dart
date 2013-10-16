@@ -30,15 +30,17 @@ class EverydayWebsocket extends PolymerElement
   StreamSubscription _selfSub;
   WebSocket _websocket;
  
-  @observable
+  @published
   String url;
   
+  @published
   int get connectTimeout => _connectTimeout.inMilliseconds;
-  
+
   set connectTimeout(int value){
     _connectTimeout = new Duration(milliseconds: this.notifyPropertyChange(CONNECT_TIMEOUT, _connectTimeout.inMilliseconds, value));  
   }
   
+  @published
   int get reconnectDelay => _reconnectDelay.inMilliseconds;
   
   set reconnectDelay(int value){

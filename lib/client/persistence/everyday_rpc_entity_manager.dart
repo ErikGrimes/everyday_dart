@@ -28,10 +28,10 @@ implements EntityManager {
   
   static const String DEFAULT_ENDPOINT = 'entity-manager';
   
-  @observable
+  @published
   String endpoint = DEFAULT_ENDPOINT;
   
-  @observable
+  @published
   Invoker invoker;
   
   inserted(){

@@ -23,7 +23,8 @@
   <template bind>
     <div class='my-class'>
   <!-- TODO bind attributes using automatic node finding when it's available.  
-  (https://code.google.com/p/dart/issues/detail?id=13172). Currently
+  (https://code.google.com/p/dart/issues/detail?id=13172) and binding is fixed
+  . Currently
   this is being done manually.
    -->
   <everyday-showcase-codec 
@@ -38,9 +39,9 @@
   </everyday-websocket>     
      
  <everyday-rpc
-    id='showcase-rpc'>
+    id='showcase-rpc'
     codec='{{showcaseCodec}}'
-    socket='{{showcaseSocket}}'> 
+    socket='{{showcaseSocket}}'>
  </everyday-rpc>
  
  <everyday-rpc-entity-manager 

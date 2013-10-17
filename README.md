@@ -18,7 +18,7 @@ postgresql database.  It covers:
 - rpc
 - serialization
 - streams
-- timeouts
+- timeouts (see TimedCompleter)
 - websockets
 - xxgregs postgresql library
 

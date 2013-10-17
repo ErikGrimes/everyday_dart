@@ -21,7 +21,7 @@ with ObservableMixin, CustomEventsMixin implements UserService {
   String endpoint = DEFAULT_ENDPOINT;
   
   @published
-  Invoker invoker;
+  var invoker;
   
   Future<User> signIn(AuthToken token, [timeout= DEFAULT_TIMEOUT]) {
     return invoker.call(endpoint, 

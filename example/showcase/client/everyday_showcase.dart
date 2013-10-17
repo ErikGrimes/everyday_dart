@@ -110,7 +110,8 @@ class EverydayShowcase extends PolymerElement with ObservableMixin {
     showcaseRpc.socket = showcaseSocket;
     showcaseEntityManager.invoker = showcaseRpc;
     showcaseUserService = this.shadowRoot.query('#showcase-user-service').xtag;
-    showcaseUserService.invoker = showcaseRpc;
+    print($["showcase-rpc"]);
+  //  showcaseUserService.invoker = showcaseRpc;
 
   }
   

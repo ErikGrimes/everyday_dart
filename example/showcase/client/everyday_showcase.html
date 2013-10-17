@@ -45,12 +45,12 @@
  
  <everyday-rpc-entity-manager 
     id='showcase-entity-manager'
-    invoker='{{showcaseRpc}}'>
+    invoker='{{ $["showcaseRpc"] }}'>
   </everyday-rpc-entity-manager>
   
    <everyday-rpc-user-service 
     id='showcase-user-service'
-    invoker='{{showcaseRpc}}'>
+    invoker='{{ $["showcase-rpc"].xtag }}'>
   </everyday-rpc-user-service>
   
   <everyday-place-history transformer='{{placesTransformer}}' place='{{place}}'>

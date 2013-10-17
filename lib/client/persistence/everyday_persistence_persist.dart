@@ -61,7 +61,6 @@ class EverydayPersistencePersist extends PolymerElement with
   _propertyChanged(List records){
     for(var cr in records){
       if(_isChanged(cr)){
-        print('new changed $changed');
         go();
         break;
       }

@@ -14,6 +14,7 @@ import 'package:polymer/polymer.dart';
 import '../../shared/rpc/messages.dart';
 import '../../shared/rpc/invoker.dart';
 import '../../shared/convert/stream.dart';
+import '../../shared/async/future.dart';
 
 import '../io/everyday_socket.dart';
 
@@ -82,10 +83,10 @@ class EverydayRpc extends PolymerElement with ObservableMixin implements Invoker
     return CODEC == cr.field ||SOCKET == cr.field; 
   }
   
+  get _nextCallId => _random.nextInt(4294967296);  
+  
   Future _call(String endpoint, String method, InvocationType invocationType, {List positional, Map named, Duration timeout}){
-    
-    var callId = _random.nextInt(4294967296);
-    
+       
     if(positional == null){
       positional = new List();
     }
@@ -94,25 +95,28 @@ class EverydayRpc extends PolymerElement with ObservableMixin implements Invoker
       named = new Map();
     }
     
-    var call = new Call(callId, endpoint, method, invocationType, positional:positional, named:named);
-    var completer = new Completer();
-    _completers[callId] = completer;
-
-    _LOGGER.finest('Submitting call ${call.callId}');
+    var call = new Call(_nextCallId, endpoint, method, invocationType, positional:positional, named:named);
+    
+    var completer = new TimedCompleter(timeout);
+    
+    completer.future.whenComplete(_completers.remove(call.callId));
+    
+    _completers[call.callId] = completer;
+    
+    var stopwatch = new Stopwatch();
+    
+    stopwatch.start();
+    
+    var encoded = codec.encoder.convert(call);
+ 
+    _LOGGER.finest('Submitting {call: ${call.callId} encodingTime: ${stopwatch.elapsedMilliseconds} ms');
+    
+    stopwatch.stop();
     
     if(socket.isOnline){
-      socket.add(codec.encoder.convert(call));
+      socket.add(encoded);
     }
     
-    if(timeout != null){
-      var timer =  new Timer(timeout, () {
-        _completers.remove(callId);
-        if(!completer.isCompleted){
-          completer.completeError('Call timed out');
-        }
-      });
-    }
-
    return completer.future;
    
   }
@@ -134,8 +138,8 @@ class EverydayRpc extends PolymerElement with ObservableMixin implements Invoker
   }
   
   _onCallResult(CallResult msg){
-    _LOGGER.finest('Completing call ${msg.callId}');
     var c = _completers.remove(msg.callId);
+    _LOGGER.finest('Completing {callId: ${msg.callId}, elapsedMillis: ${c.timeTaken.inMilliseconds}}');
     if(c != null && !c.isCompleted){
       c.complete(msg.data);
     }

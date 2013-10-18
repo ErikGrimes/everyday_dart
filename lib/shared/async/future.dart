@@ -10,18 +10,37 @@ class TimedCompleter implements Completer {
   
   Completer _completer = new Completer();
   
-  final DateTime finish; 
+  final DateTime completeBy; 
+  final DateTime createdAt;
   
-  Duration get timeRemaining {
-    return finish.difference(new DateTime.now());
+  DateTime _completedAt;
+  
+  DateTime get completedAt => _completedAt;
+  
+  Duration get timeLeft {
+    if(_completer.isCompleted){
+      return Duration.ZERO;
+    }else {
+      return completeBy.difference(new DateTime.now());
+    }
   }
- 
+  
+  Duration get timeTaken {
+    if(_completer.isCompleted){
+      return completedAt.difference(createdAt);
+    }
+    return new DateTime.now().difference(createdAt);
+  }
+  
+
+  
   Timer _timer;
   
-  TimedCompleter(Duration timeout): finish = new DateTime.now().add(timeout){
+  TimedCompleter(Duration timeout): createdAt = new DateTime.now(), completeBy = new DateTime.now().add(timeout){
     
     _timer = new Timer(timeout,(){
       if(!isCompleted){
+        _completedAt = new DateTime.now();
         _completer.completeError(new TimedOutException());
       }
     });
@@ -29,12 +48,14 @@ class TimedCompleter implements Completer {
   
   void complete([value]) {
     if(!isCompleted){
+      _completedAt = new DateTime.now();
       _completer.complete(value);
     }
   }
 
   void completeError(Object exception, [Object stackTrace]) {
     if(!isCompleted){
+      _completedAt = new DateTime.now();
       _completer.completeError(exception, stackTrace);
     }
   }

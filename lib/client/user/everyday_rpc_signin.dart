@@ -59,6 +59,7 @@ class EverydayRpcSignin extends PolymerElement with  AsynchronousEventsMixin{
   }
   
   enteredView(){
+    super.enteredView();
     _configure();
     _selfSub = this.changes.listen(_propertyChanged);
   }
@@ -66,6 +67,7 @@ class EverydayRpcSignin extends PolymerElement with  AsynchronousEventsMixin{
   leftView(){
     _unconfigure();
     _selfSub.cancel();
+    super.leftView();
   }
   
   _propertyChanged(List records){

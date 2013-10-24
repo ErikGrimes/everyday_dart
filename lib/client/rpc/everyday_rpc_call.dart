@@ -43,7 +43,11 @@ class EverydayRpcCall extends PolymerElement with AsynchronousEventsMixin {
   EverydayRpcCall.created() : super.created();
   
   bool _inDom = false;
-  enteredView(){   
+  
+  enteredView(){  
+    
+    super.enteredView();
+    
     _inDom = true;
 
     if(auto){
@@ -54,6 +58,7 @@ class EverydayRpcCall extends PolymerElement with AsynchronousEventsMixin {
   
   leftView(){
     _inDom = false;
+    super.leftView();
   }
   
   go(){

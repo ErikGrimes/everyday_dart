@@ -54,6 +54,8 @@ class EverydayRpc extends PolymerElement implements Invoker  {
   
   enteredView(){
    
+    super.enteredView();
+    
     _configure();
     
     _selfSub = this.changes.listen(_propertyChanged);
@@ -63,6 +65,7 @@ class EverydayRpc extends PolymerElement implements Invoker  {
   leftView(){
     _unconfigure();
     _selfSub.cancel();
+    super.leftView();
   }
   
   Future call(String endpoint, String method, InvocationType invocationType, {List positional, Map named, Duration timeout}){

@@ -49,6 +49,9 @@ with AsynchronousEventsMixin {
   EverydayPersistenceFindByKey.created() : super.created();
   
   enteredView(){
+    
+    super.enteredView();
+    
     _selfSub = this.changes.listen(_propertyChanged);
     if(auto){
       go();

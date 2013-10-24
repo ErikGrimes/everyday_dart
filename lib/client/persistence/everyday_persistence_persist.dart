@@ -51,11 +51,13 @@ class EverydayPersistencePersist extends PolymerElement with AsynchronousEventsM
   EverydayPersistencePersist.created() : super.created();
  
   enteredView(){ 
+    super.enteredView();
     _selfSub = this.changes.listen(_propertyChanged);
   }
   
   leftView(){
     _selfSub.cancel();
+    super.leftView();
   }
   
   _propertyChanged(List records){

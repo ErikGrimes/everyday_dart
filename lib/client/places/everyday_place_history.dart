@@ -32,6 +32,7 @@ class PlaceHistory extends PolymerElement {
    PlaceHistory.created() : super.created();
   
   enteredView(){
+    super.enteredView();
     _configure();
     _selfSub = this.changes.listen(_propertyChanged);
   }
@@ -85,9 +86,10 @@ class PlaceHistory extends PolymerElement {
     }
   }
   
-  removed(){
+  leftView(){
     _unconfigure();
     _selfSub.cancel();
+    super.leftView();
   }
    
 }

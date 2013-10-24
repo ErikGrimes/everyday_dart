@@ -23,12 +23,14 @@ class EverydayPatchObserver extends PolymerElement {
   
   StreamSubscription _patches;
   
-  inserted(){
+  enteredView(){
+    super.enteredView();
     _configure();
   }
   
-  removed(){
+  leftView(){
     _unconfigure();
+    super.leftView();
   }
   
   observeChanged(oldValue){

@@ -40,6 +40,9 @@ class EverydayPersistenceFindAll extends PolymerElement with AsynchronousEventsM
   EverydayPersistenceFindAll.created() : super.created();
   
   enteredView(){
+    
+    super.enteredView();
+    
     if(auto){
       go();
     }
@@ -47,6 +50,7 @@ class EverydayPersistenceFindAll extends PolymerElement with AsynchronousEventsM
   
   leftView(){
     _selfSub.cancel();
+    super.leftView();
   }
   
   _propertyChanged(List<ChangeRecord> records){

@@ -5,7 +5,6 @@
 library everyday.client.persistence.everyday_rpc_entity_manager;
 
 import 'dart:async';
-import 'dart:mirrors';
 
 import 'package:logging/logging.dart';
 import 'package:polymer/polymer.dart';
@@ -13,7 +12,6 @@ import 'package:polymer/polymer.dart';
 import 'package:everyday_dart/shared/patch/patch.dart';
 import 'package:everyday_dart/shared/rpc/invoker.dart';
 import 'package:everyday_dart/shared/persistence/entity_manager.dart';
-import 'package:everyday_dart/shared/mirrors/mirrors.dart';
 
 final Logger _LOGGER = new Logger('everyday.entity.everyday_rpc_entity_manager');
 

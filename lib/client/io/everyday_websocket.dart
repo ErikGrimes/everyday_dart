@@ -47,6 +47,9 @@ class EverydayWebsocket extends PolymerElement
   Future get done => _done.future;
   
   enteredView(){
+    
+    super.enteredView();
+    
     if(auto){
       start();  
     }
@@ -54,6 +57,9 @@ class EverydayWebsocket extends PolymerElement
   
   leftView(){
     stop();
+    
+    super.leftView();
+    
   }
   
   close(){

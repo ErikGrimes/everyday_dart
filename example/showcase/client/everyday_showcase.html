@@ -27,30 +27,30 @@
   this is being done manually.
    -->
   <everyday-showcase-codec 
-    id='showcase-codec'>
+    id='codec'>
   </everyday-showcase-codec>  
     
   <everyday-websocket 
-    id='showcase-socket' 
+    id='socket' 
     url='ws://localhost:8080'
     on-everyday-socket-offline='setOffline'
     on-everyday-socket-online='setOnline'>
   </everyday-websocket>     
      
  <everyday-rpc
-    id='showcase-rpc'
-    codec='{{showcaseCodec}}'
-    socket='{{showcaseSocket}}'>
+    id='rpc'
+    codec='{{codec}}'
+    socket='{{socket}}'>
  </everyday-rpc>
  
  <everyday-rpc-entity-manager 
-    id='showcase-entity-manager'
-    invoker='{{ showcaseRpc }}'>
+    id='entity-manager'
+    invoker='{{ rpc }}'>
   </everyday-rpc-entity-manager>
   
    <everyday-rpc-user-service 
-    id='showcase-user-service'
-    invoker='{{ showcaseRpc }}'>
+    id='user-service'
+    invoker='{{ rpc }}'>
   </everyday-rpc-user-service>
   
   <everyday-place-history transformer='{{placesTransformer}}' place='{{place}}'>
@@ -59,7 +59,7 @@
   <template if='{{displayUserAccess}}'> 
                      
     <everyday-user-access 
-      service='{{showcaseUserService}}' 
+      service='{{userService}}' 
       on-everyday-sign-in='signedIn'>
     </everyday-user-access>
     
@@ -72,7 +72,7 @@
       <button on-click='addProfile'>add</button>
       
       <everyday-persistence-find-all 
-        entityManager='{{showcaseEntityManager}}' 
+        entityManager='{{entityManager}}' 
         entityType='{{profileType}}' 
         on-everyday-success='profilesLoaded' 
         on-everyday-error='profilesNotLoaded' 
@@ -95,7 +95,7 @@
    
     <template if='{{isProfilePlace}}'>
      <everyday-persistence-find-by-key 
-          entityManager='{{showcaseEntityManager}}' 
+          entityManager='{{entityManager}}' 
           entityType='{{profileType}}' 
           entityKey='{{profileKey}}'
           auto='{{true}}'
@@ -114,7 +114,7 @@
           
           <everyday-persistence-persist
             id='profile-persist'
-            entityManager='{{showcaseEntityManager}}'
+            entityManager='{{entityManager}}'
             entityKey='{{profileKey}}'
             entityType='{{profileType}}'
 

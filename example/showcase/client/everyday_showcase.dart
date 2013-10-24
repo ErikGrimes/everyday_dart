@@ -23,16 +23,16 @@ class EverydayShowcase extends PolymerElement {
   Type profileType = Profile;
   
   @observable
-  EntityManager showcaseEntityManager;
+  var entityManager;
   
   @observable
-  var showcaseCodec;
+  var codec;
   
   @observable
-  var showcaseSocket;
+  var socket;
   
   @observable
-  var showcaseRpc;
+  var rpc;
   
   @observable
   var _profilePersist;
@@ -41,10 +41,10 @@ class EverydayShowcase extends PolymerElement {
   var _profileObserver;
   
   @observable
-  var showcaseUserService;
+  var userService;
   
   @observable
-  Entity profile;
+  var profile;
   
   final ObservableBox<Place> place = new ObservableBox<Place>();
 
@@ -88,8 +88,8 @@ class EverydayShowcase extends PolymerElement {
     
     super.enteredView();
     
-    // polyfill automatic attribute finding & binding
-    _polyfillBinding();
+    //https://code.google.com/p/dart/issues/detail?id=14172
+    _workaroundBug14172();
     
     _bindPlaces();
     
@@ -100,16 +100,12 @@ class EverydayShowcase extends PolymerElement {
    
   } 
   
-  _polyfillBinding(){
-
-    showcaseRpc = $['showcase-rpc'];
-    showcaseCodec = $['showcase-codec'];
-    showcaseSocket = $['showcase-socket'];
-    showcaseEntityManager = $['showcase-entity-manager'];
-    showcaseRpc.codec = showcaseCodec;
-    showcaseRpc.socket = showcaseSocket;
-    showcaseEntityManager.invoker = showcaseRpc;
-    showcaseUserService = $['showcase-user-service'];
+  _workaroundBug14172(){
+    rpc = $['rpc'];
+    codec = $['codec'];
+    socket = $['socket'];
+    entityManager = $['entity-manager'];
+    userService = $['user-service'];
   }
   
   _bindPlaces(){
@@ -146,7 +142,6 @@ class EverydayShowcase extends PolymerElement {
   }
   
   profilesNotLoaded(event,  detail, target){
-    print('detail is $detail');
     _LOGGER.info('Profiles not loaded [$detail]');
     Observable.dirtyCheck();
   }

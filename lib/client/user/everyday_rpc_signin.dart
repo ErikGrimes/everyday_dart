@@ -8,15 +8,14 @@ import 'dart:async';
 
 import 'package:polymer/polymer.dart';
 
-import '../../shared/user/user.dart';
-import '../../shared/rpc/invoker.dart';
+import 'package:everyday_dart/shared/user/user.dart';
+import 'package:everyday_dart/shared/rpc/invoker.dart';
 
-import '../polymer/polyfills.dart';
+import 'package:everyday_dart/client/mixins.dart';
 
 
 @CustomTag('everyday-rpc-signin')
-class EverydayRpcSignin extends PolymerElement with 
-  ObservableMixin, AsynchronousEventsMixin, CustomEventsMixin {
+class EverydayRpcSignin extends PolymerElement with  AsynchronousEventsMixin{
   
   static const Symbol RESPONSE = const Symbol('response');
   
@@ -47,6 +46,9 @@ class EverydayRpcSignin extends PolymerElement with
   
   StreamSubscription _selfSub;
   
+  
+  EverydayRpcSignin.created() : super.created();
+  
   var __call;
   
   get _call {
@@ -56,12 +58,12 @@ class EverydayRpcSignin extends PolymerElement with
     return __call;
   }
   
-  inserted(){
+  enteredView(){
     _configure();
     _selfSub = this.changes.listen(_propertyChanged);
   }
   
-  removed(){
+  leftView(){
     _unconfigure();
     _selfSub.cancel();
   }
@@ -123,12 +125,6 @@ class EverydayRpcSignin extends PolymerElement with
     this.dispatchError(detail);
   }
   
-  set onEverydaySuccess(value){
-    super.onEverydaySuccess = value;
-  }
-  
-  set onEverydayError(value){
-    super.onEverydayError = value;
-  }
+ 
   
 }

@@ -15,17 +15,38 @@ import 'package:postgresql/postgresql.dart';
 
 import '../shared/model.dart';
 
-class ProfileConverterTransformer extends StreamEventTransformer {
+class _ProfileConverterTransformSink implements EventSink {
   
-  final Converter _converter;
+  final EventSink _outputSink;
   
-  ProfileConverterTransformer(this._converter);
+  Converter _converter;
   
-  handleData(row, sink){
-    sink.add(_converter.convert(row[1]));
+  _ProfileConverterTransformSink(this._converter, this._outputSink);
+
+  void add(row) {
+    _outputSink.add(_converter.convert(row[1]));
   }
+
+  void addError(e, [st]) => _outputSink.addError(e, st);
+  void close() => _outputSink.close();
+  
+ 
   
 }
+
+class _ProfileConverterTransformer implements StreamTransformer {
+  
+  Converter _converter;
+  
+  _ProfileConverterTransformer(this._converter);
+  
+  Stream bind(Stream stream) =>
+    new Stream.eventTransformed(
+        stream,
+        (EventSink sink) => new _ProfileConverterTransformSink(_converter, sink));
+  
+}
+
 
 class ProfileEntityHandler extends Object implements PostgresqlEntityHandler {
  
@@ -79,12 +100,12 @@ class ProfileEntityHandler extends Object implements PostgresqlEntityHandler {
   }
   
   Future<List<Entity>> findAll(Connection connection) {
-    return connection.query(FIND_ALL_PROFILES).transform(new ProfileConverterTransformer(_codec.decoder)).toList();
+    return connection.query(FIND_ALL_PROFILES).transform(new _ProfileConverterTransformer(_codec.decoder)).toList();
   }
 
   Future<Entity> findByKey(key, Connection connection) {
     var completer = new Completer();
-    connection.query(FIND_PROFILE_BY_ID,{'id':key}).transform(new ProfileConverterTransformer(_codec.decoder)).toList().then((list){
+    connection.query(FIND_PROFILE_BY_ID,{'id':key}).transform(new _ProfileConverterTransformer(_codec.decoder)).toList().then((list){
       if(list.isNotEmpty){
         completer.complete(list[0]);
       }else {
@@ -95,7 +116,7 @@ class ProfileEntityHandler extends Object implements PostgresqlEntityHandler {
   }
 
   Future<List<Entity>> findByKeys(List keys, Connection connection) {
-    return connection.query(appendInSql(FIND_PROFILES_BY_ID, keys.length),keys).transform(new ProfileConverterTransformer(_codec.decoder)).toList();
+    return connection.query(appendInSql(FIND_PROFILES_BY_ID, keys.length),keys).transform(new _ProfileConverterTransformer(_codec.decoder)).toList();
   }
 
   Future<Entity> insert(Entity entity, List<ObjectPatchRecord> changes, Connection connection) {

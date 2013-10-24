@@ -8,13 +8,10 @@ import 'dart:async';
 
 import 'package:polymer/polymer.dart';
 
-import '../../shared/patch/patch.dart';
+import 'package:everyday_dart/shared/patch/patch.dart';
 
 @CustomTag('everyday-patch-observer')
-class EverydayPatchObserver extends PolymerElement with 
-  ObservableMixin {
-  
-  static const Symbol OBSERVE = const Symbol('observe');
+class EverydayPatchObserver extends PolymerElement {
   
   @published
   Observable observe;
@@ -22,40 +19,31 @@ class EverydayPatchObserver extends PolymerElement with
   @published
   List changed = new List();
   
-  StreamSubscription _patches;
+  EverydayPatchObserver.created() : super.created();
   
-  StreamSubscription _selfSub;
+  StreamSubscription _patches;
   
   inserted(){
     _configure();
-    _selfSub = this.changes.listen(_propertyChanged);
   }
   
   removed(){
     _unconfigure();
-    _selfSub.cancel();
   }
   
-  _propertyChanged(List records){
-    for(var cr in records){
-      if(_changeRequiresReconfigure(cr)){
-        _unconfigure();
-        _configure();
-        break;
-      }
-    }  
+  observeChanged(oldValue){
+    _unconfigure();   
+    _configure();
   }
   
-  _changeRequiresReconfigure(cr){
-    return cr.field == OBSERVE;
-  }
-  
-  //TODO coalesce multiple changes to the same field into a single edit
   _configure(){
     if(observe != null){
-      new ObjectPatchObserver(observe).changes.listen((patches){
+      var watch = new Stopwatch();
+      watch.start();
+      _patches = new ObjectPatchObserver(observe).changes.listen((patches){
         changed.addAll(patches);
       });
+      watch.stop();
     }
   }
   

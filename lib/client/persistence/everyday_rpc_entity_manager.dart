@@ -10,17 +10,17 @@ import 'dart:mirrors';
 import 'package:logging/logging.dart';
 import 'package:polymer/polymer.dart';
 
-import '../../shared/patch/patch.dart';
-import '../../shared/rpc/invoker.dart';
-import '../../shared/persistence/entity_manager.dart';
-import '../../shared/mirrors/mirrors.dart';
+import 'package:everyday_dart/shared/patch/patch.dart';
+import 'package:everyday_dart/shared/rpc/invoker.dart';
+import 'package:everyday_dart/shared/persistence/entity_manager.dart';
+import 'package:everyday_dart/shared/mirrors/mirrors.dart';
 
 final Logger _LOGGER = new Logger('everyday.entity.everyday_rpc_entity_manager');
 
 const Duration _DEFAULT_TIMEOUT = const Duration(seconds: 1);
 
 @CustomTag('everyday-rpc-entity-manager')
-class EverydayRpcEntityManager extends PolymerElement with ObservableMixin 
+class EverydayRpcEntityManager extends PolymerElement 
 implements EntityManager {
   
   static const Symbol INVOKER = const Symbol('invoker');
@@ -34,16 +34,9 @@ implements EntityManager {
   @published
   Invoker invoker;
   
-  inserted(){
-    
-    this.changes.listen(_propertyChanged);
-    
-  }
+  EverydayRpcEntityManager.created() : super.created();
   
-  removed(){
-  
-  }
-  
+ 
   Future<Entity> findByKey(String type, var key, {Duration timeout}) {
     return invoker.call(endpoint, 'findByKey',
         InvocationType.INVOKE, positional:[type, key]);
@@ -68,13 +61,6 @@ implements EntityManager {
     return invoker.call(endpoint, 'persist', InvocationType.INVOKE, positional:[type, key, changes], timeout:timeout);
   }
   
-  _propertyChanged(List<ChangeRecord> records){
-    
-
-  }
   
-}
-
-typeToString(Type type){
-  return convertSymbolToString(reflectClass(type).simpleName);
+  
 }

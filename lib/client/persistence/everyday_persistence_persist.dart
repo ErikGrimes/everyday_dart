@@ -9,13 +9,13 @@ import 'dart:mirrors';
 
 import 'package:polymer/polymer.dart';
 
-import '../polymer/polyfills.dart';
-import '../../shared/persistence/entity_manager.dart';
-import '../../shared/patch/patch.dart';
+import 'package:everyday_dart/shared/persistence/entity_manager.dart';
+import 'package:everyday_dart/shared/patch/patch.dart';
+
+import 'package:everyday_dart/client/mixins.dart';
 
 @CustomTag('everyday-persistence-persist')
-class EverydayPersistencePersist extends PolymerElement with 
-  ObservableMixin, CustomEventsMixin, AsynchronousEventsMixin {
+class EverydayPersistencePersist extends PolymerElement with AsynchronousEventsMixin {
   
   static int nextId = 0;
   
@@ -48,13 +48,13 @@ class EverydayPersistencePersist extends PolymerElement with
   
   bool _changedWhilePending = false;
   
-
+  EverydayPersistencePersist.created() : super.created();
  
-  inserted(){ 
+  enteredView(){ 
     _selfSub = this.changes.listen(_propertyChanged);
   }
   
-  removed(){
+  leftView(){
     _selfSub.cancel();
   }
   

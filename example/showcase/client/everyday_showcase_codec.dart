@@ -11,4 +11,6 @@ import '../shared/codec.dart';
 @CustomTag('everyday-showcase-codec')
 class EverydayShowcaseCodec extends PolymerElement with EverydayShowcaseCodecMixin {
  
+  EverydayShowcaseCodec.created(): super.created();
+  
 }

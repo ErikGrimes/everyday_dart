@@ -4,7 +4,7 @@ import 'package:unittest/unittest.dart';
 import '../../../lib/shared/patch/patch.dart';
 
 
-class Observed extends Object with ObservableMixin {
+class Observed extends Object with Observable {
   
   @observable
   String field1;

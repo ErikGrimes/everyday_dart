@@ -8,7 +8,7 @@ import 'package:observe/observe.dart';
 import 'package:everyday_dart/shared/persistence/entity_manager.dart';
 
 
-class Profile extends Object with ObservableMixin implements Entity {
+class Profile extends Object with Observable implements Entity {
   
   static const Symbol FULL_NAME = const Symbol('fullName');
   static const Symbol ADDRESS_AS = const Symbol('addressAs');
@@ -37,7 +37,7 @@ class Profile extends Object with ObservableMixin implements Entity {
   
 }
 
-class ContactInfo extends Object with ObservableMixin  {
+class ContactInfo extends Object with Observable  {
   
   static const Symbol PHONE = const Symbol('phone');
   static const Symbol EMAIL = const Symbol('email');
@@ -58,7 +58,7 @@ class ContactInfo extends Object with ObservableMixin  {
   
 }
 
-class Address extends Object with ObservableMixin  {
+class Address extends Object with Observable  {
   
   static const Symbol STREET_OR_BOX = const Symbol('streetOrBox');
   static const Symbol CITY = const Symbol('city');

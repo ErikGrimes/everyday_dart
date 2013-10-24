@@ -10,12 +10,11 @@ import 'dart:html';
 import 'package:polymer/polymer.dart';
 import 'package:logging/logging.dart';
 
-import '../polymer/polyfills.dart';
-import 'everyday_socket.dart';
+import 'package:everyday_dart/client/io/everyday_socket.dart';
 
 @CustomTag('everyday-websocket')
 class EverydayWebsocket extends PolymerElement 
-  with ObservableMixin, EverydaySocketMixin, CustomEventsMixin
+  with EverydaySocketMixin
   implements EverydaySocket {
   
   static const Symbol RECONNECT_DELAY = const Symbol('reconnectDelay');
@@ -25,35 +24,35 @@ class EverydayWebsocket extends PolymerElement
   static final _LOGGER = new Logger('everyday.io.everyday_websocket');
   
   Duration _reconnectDelay = new Duration(seconds:1);
+  
   Duration _connectTimeout = new Duration(seconds:1);
+  
   Completer _done;
-  StreamSubscription _selfSub;
   WebSocket _websocket;
+  
+  @published
+  bool auto = false;
  
   @published
   String url;
   
   @published
-  int get connectTimeout => _connectTimeout.inMilliseconds;
-
-  set connectTimeout(int value){
-    _connectTimeout = new Duration(milliseconds: this.notifyPropertyChange(CONNECT_TIMEOUT, _connectTimeout.inMilliseconds, value));  
-  }
+  int connectTimeout = 1000;
   
   @published
-  int get reconnectDelay => _reconnectDelay.inMilliseconds;
-  
-  set reconnectDelay(int value){
-    _reconnectDelay = new Duration(milliseconds: this.notifyPropertyChange(RECONNECT_DELAY, _connectTimeout.inMilliseconds, value));  
-  }
+  int reconnectDelay = 1000;
+
+  EverydayWebsocket.created() : super.created();
   
   Future get done => _done.future;
   
-  inserted(){
-   start();  
+  enteredView(){
+    if(auto){
+      start();  
+    }
   }
   
-  removed(){
+  leftView(){
     stop();
   }
   
@@ -65,28 +64,25 @@ class EverydayWebsocket extends PolymerElement
     super.start();
     _done = new Completer();
     _configure();
-    _selfSub = this.changes.listen(_propertyChanged);
   }
   
   stop(){
     super.stop();
     _done.complete();
-    _selfSub.cancel();
     _unconfigure();
   }
-
-  _propertyChanged(List<ChangeRecord> records){
-    for(var cr in records){
-      if(_changeRequiresReconfigure(cr)){
-        _unconfigure();
-        _configure();
-        break;
-      }
-    }
+  
+  urlChanged(oldValue){
+    _unconfigure();
+    _configure();
   }
   
-  _changeRequiresReconfigure(cr){
-    return cr.field == URL;
+  reconnectDelayChanged(oldValue){
+    _reconnectDelay = new Duration(milliseconds: reconnectDelay);
+  }
+  
+  connectTimeoutChanged(oldValue){
+    _connectTimeout = new Duration(milliseconds: connectTimeout);
   }
   
   _assertOnline(){
@@ -110,20 +106,20 @@ class EverydayWebsocket extends PolymerElement
       _connect(url, _connectTimeout).then((websocket){
         _LOGGER.finest('Connected to $url');
         _websocket = websocket;
-        _websocket.onMessage.listen((data){dispatchMessage(data.data);});
+        _websocket.onMessage.listen((data){fireMessage(data.data);});
         _websocket.onError.listen((error){    
-          dispatchError(EverydaySocket.RAWSOCKET_ERROR);
-          dispatchOffline();
+          fireError(EverydaySocket.RAWSOCKET_ERROR);
+          fireOffline();
           _queueConnect(_reconnectDelay);});
        _websocket.onClose.listen((_){
          _LOGGER.finest('Connection to $url unexpectedly closed');
-         dispatchError(EverydaySocket.SERVER_DISCONNECTED);
-         dispatchOffline();
+         fireError(EverydaySocket.SERVER_DISCONNECTED);
+         fireOffline();
          _queueConnect(_reconnectDelay);});
-        dispatchOnline();
+        fireOnline();
        }).catchError((e){
          _LOGGER.finest('Initial connect to $url failed',e);
-         dispatchError(e);
+         fireError(e);
          _queueConnect(_reconnectDelay);
        }); 
     });
@@ -173,7 +169,7 @@ class EverydayWebsocket extends PolymerElement
   }
 
   //TODO Figure out what this should do
-  void addError(error) {
+  void addError(error, [stackTrace]) {
     
   }
 

@@ -5,19 +5,18 @@
 library everyday.client.persistence.everyday_persistence_find_by_key;
 
 import 'dart:async';
-import 'dart:html';
 import 'dart:mirrors';
 
 import 'package:polymer/polymer.dart';
 
-import '../../shared/persistence/entity_manager.dart';
-import '../../shared/mirrors/mirrors.dart';
+import 'package:everyday_dart/shared/persistence/entity_manager.dart';
+import 'package:everyday_dart/shared/mirrors/mirrors.dart';
 
-import '../polymer/polyfills.dart';
+import 'package:everyday_dart/client/mixins.dart';
 
 @CustomTag('everyday-persistence-find-by-key')
 class EverydayPersistenceFindByKey extends PolymerElement 
-with ObservableMixin, CustomEventsMixin, AsynchronousEventsMixin {
+with AsynchronousEventsMixin {
   
   static const Symbol ENTITY_KEY = const Symbol('entityKey');
   static const Symbol ENTITY_TYPE = const Symbol('entityType');
@@ -47,14 +46,16 @@ with ObservableMixin, CustomEventsMixin, AsynchronousEventsMixin {
   @published
   EntityManager entityManager;
 
-  inserted(){
+  EverydayPersistenceFindByKey.created() : super.created();
+  
+  enteredView(){
     _selfSub = this.changes.listen(_propertyChanged);
     if(auto){
       go();
     }
   }
   
-  removed(){
+  leftView(){
     _selfSub.cancel();
   }
   
@@ -62,7 +63,7 @@ with ObservableMixin, CustomEventsMixin, AsynchronousEventsMixin {
     for(var cr in records){
       if(_isExternallySetProperty(cr)){
         if(auto){
-          go();
+       //   go();
         }
         break;
       }

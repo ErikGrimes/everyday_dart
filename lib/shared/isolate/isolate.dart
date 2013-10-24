@@ -9,8 +9,11 @@ import 'dart:async';
 
 import 'package:logging/logging.dart';
 
-import '../../server/io/message_handler.dart';
-
+abstract class Disposable {
+  bool get isDisposed;
+  Future get disposed;
+  dispose();
+}
 
 class IsolateChannel extends Stream implements StreamSink {
   
@@ -49,7 +52,7 @@ class IsolateChannel extends Stream implements StreamSink {
     _sendPort.send(event, _replyTo);
   }
 
-  void addError(errorEvent) {
+  void addError(error, [st]) {
     // TODO implement this method
     throw new UnimplementedError();
   }

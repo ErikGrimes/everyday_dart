@@ -31,7 +31,8 @@ main(){
     _bindServerSocket().then((_) {
       _LOGGER.info('Server socket bound');
       _listenForRequests(_);});
-    }, onError:(e){
+    }, onError:(e, st){
+      print(st);
     _LOGGER.warning('An unhandled exception occurred. Resources may have leaked.', e);});
 }
 

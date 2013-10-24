@@ -12,28 +12,32 @@ import '../../shared/isolate/isolate.dart';
 
 import 'message_handler.dart';
 
-class WebSocketTransformer extends StreamEventTransformer<io.HttpRequest,io.WebSocket> {
-  
+class _WebSocketTransformSink implements EventSink<io.HttpRequest> {
   static final Logger _LOGGER = new Logger('everyday.server.io.websocket_transformer');
+  
+  final EventSink<io.WebSocket> _outputSink;
   
   bool _discardRegular;
   
-  WebSocketTransformer([discardRegular = true]): this._discardRegular = discardRegular;
-  
-  void handleData(io.HttpRequest request, EventSink<io.WebSocket> sink){
+  _WebSocketTransformSink(this._outputSink, this._discardRegular);
+
+  void add(io.HttpRequest request) {
     if(io.WebSocketTransformer.isUpgradeRequest(request)){
       _LOGGER.info('Upgrading websocket');
       _setResponseHeaders(request.response);
       io.WebSocketTransformer.upgrade(request)
-        .then((websocket){sink.add(websocket);})
+        .then((websocket){_outputSink.add(websocket);})
           .catchError((error){
-            sink.add(error);
+            _outputSink.add(error);
           });
    }else if(_discardRegular){
      request.response.statusCode = io.HttpStatus.NOT_FOUND;
      request.response.close();
    }
   }
+
+  void addError(e, [st]) => _outputSink.addError(e, st);
+  void close() => _outputSink.close();
   
   void _setResponseHeaders(io.HttpResponse res) {
     res.headers.add("Access-Control-Allow-Origin", "*, ");
@@ -43,17 +47,32 @@ class WebSocketTransformer extends StreamEventTransformer<io.HttpRequest,io.WebS
   
 }
 
-class HandleInNewFunctionIsolateTransformer extends StreamEventTransformer<io.WebSocket, Disposable>{
+class WebSocketTransformer implements StreamTransformer<io.HttpRequest,io.WebSocket> {
   
+  bool _discardRegular;
+  
+  WebSocketTransformer([discardRegular = true]): this._discardRegular = discardRegular;
+
+  Stream<io.WebSocket> bind(Stream<io.HttpRequest> stream) =>
+    new Stream<io.WebSocket>.eventTransformed(
+        stream,
+        (EventSink sink) => new _WebSocketTransformSink(sink, _discardRegular));
+  
+}
+
+class _HandleInNewFunctionIsolateTransformSink implements EventSink<io.WebSocket> {
+
   static final Logger _LOGGER = new Logger('everyday.server.io.HandleInNewFunctionIsolateTransformer');
   
   final TransferableMessageHandlerFactory _handlerFactory;
   
   final Codec _codec;
   
-  HandleInNewFunctionIsolateTransformer(this._codec, this._handlerFactory);
+  final EventSink<Disposable> _outputSink;
   
-  handleData(io.WebSocket client, EventSink<Disposable> sink){
+  _HandleInNewFunctionIsolateTransformSink(this._codec, this._handlerFactory, this._outputSink);
+
+  void add(io.WebSocket client) {
     var localReceive = new ReceivePort();
     _handlerFactory.create().then((handler){
       spawnFunctionIsolate(new MessageHandlerMain(_codec, handler, localReceive.toSendPort())).then((isolate){
@@ -66,25 +85,45 @@ class HandleInNewFunctionIsolateTransformer extends StreamEventTransformer<io.We
             client.close();
           });
           channel.pipe(client);
-          sink.add(isolate);
+          _outputSink.add(isolate);
         });
       });
     });
-   
   }
+
+  void addError(e, [st]) => _outputSink.addError(e, st);
+  void close() => _outputSink.close();
+ 
 }
 
-class HandleInCurrentIsolateTransformer extends StreamEventTransformer<io.WebSocket, Disposable>{
+class HandleInNewFunctionIsolateTransformer implements StreamTransformer<io.WebSocket, Disposable>{
   
-  static final Logger _LOGGER = new Logger('everyday.server.io.HandleInCurrentIsolateTransformer');
+ final TransferableMessageHandlerFactory _handlerFactory;
+  
+  final Codec _codec;
+  
+  HandleInNewFunctionIsolateTransformer(this._codec, this._handlerFactory);
+  
+  Stream<Disposable> bind(Stream<io.WebSocket> stream) =>
+      new Stream<Disposable>.eventTransformed(
+          stream,
+          (EventSink sink) => new _HandleInNewFunctionIsolateTransformSink(_codec, _handlerFactory, sink));
+  
+}
+
+class _HandleInCurrentIsolateTransformSink implements EventSink<io.WebSocket> {
+
+  static final Logger _LOGGER = new Logger('everyday.server.io.HandleInCurrentIsolateTranformer');
   
   final MessageHandlerFactory _handlerFactory;
-  Codec _codec;
   
-  HandleInCurrentIsolateTransformer(this._codec, this._handlerFactory);
+  final Codec _codec;
   
-  //TODO Ensure proper cleanup
-  handleData(io.WebSocket client, EventSink<Disposable> sink){
+  final EventSink<Disposable> _outputSink;
+  
+  _HandleInCurrentIsolateTransformSink(this._codec, this._handlerFactory, this._outputSink);
+
+  void add(io.WebSocket client) {
     _handlerFactory.create().then((handler){
       var decoderStream = new ConverterStream(_codec.decoder);
       decoderStream.pipe(handler); 
@@ -92,8 +131,27 @@ class HandleInCurrentIsolateTransformer extends StreamEventTransformer<io.WebSoc
       var encoderStream = new ConverterStream(_codec.encoder);
       encoderStream.pipe(client);
       handler.pipe(encoderStream);
-      sink.add(handler);
+      _outputSink.add(handler);
     });
+    
   }
+
+  void addError(e, [st]) => _outputSink.addError(e, st);
+  void close() => _outputSink.close();
+ 
+}
+
+
+class HandleInCurrentIsolateTransformer implements StreamTransformer<io.WebSocket, Disposable>{
+  
+  final MessageHandlerFactory _handlerFactory;
+  Codec _codec;
+  
+  HandleInCurrentIsolateTransformer(this._codec, this._handlerFactory);
+  
+  Stream<Disposable> bind(Stream<io.WebSocket> stream) =>
+      new Stream<Disposable>.eventTransformed(
+          stream,
+          (EventSink sink) => new _HandleInCurrentIsolateTransformSink(_codec, _handlerFactory, sink));
 }
 

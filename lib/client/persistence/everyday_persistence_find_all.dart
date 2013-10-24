@@ -5,19 +5,17 @@
 library everyday.client.persistence.everyday_persistence_find_all;
 
 import 'dart:async';
-import 'dart:html';
 import 'dart:mirrors';
 
 import 'package:polymer/polymer.dart';
 
-import '../../shared/persistence/entity_manager.dart';
-import '../../shared/mirrors/mirrors.dart';
+import 'package:everyday_dart/shared/persistence/entity_manager.dart';
+import 'package:everyday_dart/shared/mirrors/mirrors.dart';
 
-import '../polymer/polyfills.dart';
+import 'package:everyday_dart/client/mixins.dart';
 
 @CustomTag('everyday-persistence-find-all')
-class EverydayPersistenceFindAll extends PolymerElement 
-  with ObservableMixin, CustomEventsMixin, AsynchronousEventsMixin {
+class EverydayPersistenceFindAll extends PolymerElement with AsynchronousEventsMixin {
   
   static const Symbol AUTO = const Symbol('auto');
   static const Symbol ENTITY_TYPE = const Symbol('entityType');
@@ -39,14 +37,15 @@ class EverydayPersistenceFindAll extends PolymerElement
   @published
   EntityManager entityManager;
   
-  inserted(){
-    _selfSub = this.changes.listen(_propertyChanged);
+  EverydayPersistenceFindAll.created() : super.created();
+  
+  enteredView(){
     if(auto){
       go();
     }
   }
   
-  removed(){
+  leftView(){
     _selfSub.cancel();
   }
   

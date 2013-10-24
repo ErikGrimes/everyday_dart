@@ -8,12 +8,12 @@ import 'dart:async';
 
 import 'package:polymer/polymer.dart';
 
-import '../../shared/rpc/invoker.dart';
+import 'package:everyday_dart/shared/rpc/invoker.dart';
 
-import '../polymer/polyfills.dart';
+import 'package:everyday_dart/client/mixins.dart';
 
 @CustomTag('everyday-rpc-call')
-class EverydayRpcCall extends PolymerElement with ObservableMixin, CustomEventsMixin, AsynchronousEventsMixin {
+class EverydayRpcCall extends PolymerElement with AsynchronousEventsMixin {
  
   Invoker invoker;
   
@@ -40,8 +40,10 @@ class EverydayRpcCall extends PolymerElement with ObservableMixin, CustomEventsM
   @published
   var result;
   
+  EverydayRpcCall.created() : super.created();
+  
   bool _inDom = false;
-  inserted(){   
+  enteredView(){   
     _inDom = true;
 
     if(auto){
@@ -50,12 +52,8 @@ class EverydayRpcCall extends PolymerElement with ObservableMixin, CustomEventsM
     
   }
   
-  removed(){
+  leftView(){
     _inDom = false;
-  }
-  
-  set onEverydayError(value){
-    super.onEverydayError = value;
   }
   
   go(){
@@ -68,14 +66,12 @@ class EverydayRpcCall extends PolymerElement with ObservableMixin, CustomEventsM
         timeout: new Duration(milliseconds:timeout)).then((_result){
           if(_inDom){
             result = _result;
-            this.dispatchCustomEvent('everyday-success', result);
-            this.dispatchCustomEvent('everyday-complete', result);
+            this.dispatchSuccess(result);
           }
         }).catchError((error){
           if(_inDom){
             result = error;
-            this.dispatchCustomEvent('everyday-error', result);
-            this.dispatchCustomEvent('everyday-complete', result);
+            this.dispatchError(error);
           }
         });
   }

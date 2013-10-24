@@ -22,14 +22,19 @@ class RpcMessageHandler extends Stream implements MessageHandler<Message> {
   RpcMessageHandler(this._router);
   
   _handleCall(Call call){
-    _LOGGER.finest('Handling call ${call.callId}');
-    _router.route(call).then((_){
+    _LOGGER.finest('Calling {callId: ${call.callId}, target: ${call.endpoint}, method: ${call.method}');
+    var watch = new Stopwatch();
+    watch.start();
+    _router.route(call).then((_){  
       _outbound.add(_);
     }).catchError((e){
       _outbound.add(e);
     }, test: (e) => e is CallError)
     .catchError((error){
       _LOGGER.warning('Unexpected error: $error', error);
+    }).whenComplete((){
+      watch.stop();
+      _LOGGER.finest('Completed {callId: ${call.callId}, target: ${call.endpoint}, method: ${call.method}, elapsedMillis: ${watch.elapsedMilliseconds}');
     });
   }
   
@@ -40,7 +45,7 @@ class RpcMessageHandler extends Stream implements MessageHandler<Message> {
     }
   }
 
-  void addError(errorEvent) {
+  void addError(errorEvent, [st]) {
     //TODO Implement this method
     throw new UnimplementedError();
   }

@@ -16,7 +16,7 @@ import '../shared/model.dart';
 import 'places.dart';
 
 @CustomTag('everyday-showcase')
-class EverydayShowcase extends PolymerElement with ObservableMixin {
+class EverydayShowcase extends PolymerElement {
   
   static final Logger _LOGGER = new Logger('everyday.showcase.everyday_showcase');
   
@@ -77,15 +77,16 @@ class EverydayShowcase extends PolymerElement with ObservableMixin {
 
   List profileChanged = [];
   
- 
   final PlacesTransformer placesTransformer = new PlacesTransformer([new ProfilesPlaceTransformer(), new ProfilePlaceTransformer()]);
   
-  inserted(){
+  EverydayShowcase.created(): super.created();
+  
+  enteredView(){
     
     Logger.root.level = Level.ALL;
     Logger.root.onRecord.listen(_logToConsole);
     
-    super.inserted();
+    super.enteredView();
     
     // polyfill automatic attribute finding & binding
     _polyfillBinding();
@@ -98,21 +99,17 @@ class EverydayShowcase extends PolymerElement with ObservableMixin {
     
    
   } 
- 
+  
   _polyfillBinding(){
 
-    showcaseRpc = this.shadowRoot.query('#showcase-rpc').xtag;
-    showcaseCodec = this.shadowRoot.query('#showcase-codec').xtag;
-    showcaseSocket = this.shadowRoot.query('#showcase-socket').xtag;
-    showcaseEntityManager = this.shadowRoot.query('#showcase-entity-manager').xtag;
-
+    showcaseRpc = $['showcase-rpc'];
+    showcaseCodec = $['showcase-codec'];
+    showcaseSocket = $['showcase-socket'];
+    showcaseEntityManager = $['showcase-entity-manager'];
     showcaseRpc.codec = showcaseCodec;
     showcaseRpc.socket = showcaseSocket;
     showcaseEntityManager.invoker = showcaseRpc;
-    showcaseUserService = this.shadowRoot.query('#showcase-user-service').xtag;
-    print($["showcase-rpc"]);
-  //  showcaseUserService.invoker = showcaseRpc;
-
+    showcaseUserService = $['showcase-user-service'];
   }
   
   _bindPlaces(){
@@ -149,6 +146,7 @@ class EverydayShowcase extends PolymerElement with ObservableMixin {
   }
   
   profilesNotLoaded(event,  detail, target){
+    print('detail is $detail');
     _LOGGER.info('Profiles not loaded [$detail]');
     Observable.dirtyCheck();
   }

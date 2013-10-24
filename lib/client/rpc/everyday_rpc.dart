@@ -11,17 +11,19 @@ import 'dart:math';
 import 'package:logging/logging.dart';
 import 'package:polymer/polymer.dart';
 
-import '../../shared/rpc/messages.dart';
-import '../../shared/rpc/invoker.dart';
-import '../../shared/convert/stream.dart';
-import '../../shared/async/future.dart';
+import 'package:everyday_dart/shared/rpc/messages.dart';
+import 'package:everyday_dart/shared/rpc/invoker.dart';
+import 'package:everyday_dart/shared/convert/stream.dart';
+import 'package:everyday_dart/shared/async/future.dart';
 
-import '../io/everyday_socket.dart';
+import 'package:everyday_dart/client/io/everyday_socket.dart';
+
+final Logger _LOGGER = new Logger('everyday.rpc.everyday_rpc');
 
 @CustomTag('everyday-rpc')
-class EverydayRpc extends PolymerElement with ObservableMixin implements Invoker  {
+class EverydayRpc extends PolymerElement implements Invoker  {
   
-  static final Logger _LOGGER = new Logger('everyday.rpc.everyday_rpc');
+
   
   static final Symbol CODEC = const Symbol('codec');
   static final Symbol DEFAULT_TIMEOUT = const Symbol('defaultTimeout');
@@ -48,7 +50,9 @@ class EverydayRpc extends PolymerElement with ObservableMixin implements Invoker
   @published
   EverydaySocket socket;
   
-  inserted(){
+  EverydayRpc.created() : super.created();
+  
+  enteredView(){
    
     _configure();
     
@@ -56,7 +60,7 @@ class EverydayRpc extends PolymerElement with ObservableMixin implements Invoker
     
   }
   
-  removed(){
+  leftView(){
     _unconfigure();
     _selfSub.cancel();
   }
@@ -99,19 +103,19 @@ class EverydayRpc extends PolymerElement with ObservableMixin implements Invoker
     
     var completer = new TimedCompleter(timeout);
     
-    completer.future.whenComplete(_completers.remove(call.callId));
+    completer.future.catchError((_){}).whenComplete(_completers.remove(call.callId));
     
     _completers[call.callId] = completer;
     
-    var stopwatch = new Stopwatch();
+    var watch = new Stopwatch();
     
-    stopwatch.start();
+    watch.start();
     
     var encoded = codec.encoder.convert(call);
- 
-    _LOGGER.finest('Submitting {call: ${call.callId} encodingTime: ${stopwatch.elapsedMilliseconds} ms');
     
-    stopwatch.stop();
+    _LOGGER.finest('Sending {callId: ${call.callId}, target: ${call.endpoint}, method: ${call.method}, encodingMilliseconds: ${watch.elapsedMilliseconds} }');
+       
+    watch.stop();
     
     if(socket.isOnline){
       socket.add(encoded);
@@ -125,7 +129,9 @@ class EverydayRpc extends PolymerElement with ObservableMixin implements Invoker
     if(_allAttributesSet()){ 
       //TODO Figure out proper cleanup and error handling
       var decoderStream = new ConverterStream(new _MessageEventDecoder(codec.decoder));
-      socket.onMessage.pipe(decoderStream);
+      socket.on['everyday-socket-message'].listen((data){
+        decoderStream.addStream(new Stream.fromIterable([data]));
+      });
       var decoded = decoderStream.asBroadcastStream();
       _socketSubs.add(decoded.where(((event){return event is CallResult;})).listen(_onCallResult));
       _socketSubs.add(decoded.where(((event){return event is CallError;})).listen(_onCallError));
@@ -139,7 +145,7 @@ class EverydayRpc extends PolymerElement with ObservableMixin implements Invoker
   
   _onCallResult(CallResult msg){
     var c = _completers.remove(msg.callId);
-    _LOGGER.finest('Completing {callId: ${msg.callId}, elapsedMillis: ${c.timeTaken.inMilliseconds}}');
+    _LOGGER.finest('Completing {callId: ${msg.callId}, elapsedMilliseconds: ${c.timeTaken.inMilliseconds}}');
     if(c != null && !c.isCompleted){
       c.complete(msg.data);
     }
@@ -171,7 +177,13 @@ class _MessageEventDecoder extends Converter {
   _MessageEventDecoder(this._converter);
   
   convert(event) {
-    return _converter.convert(event.detail);
+    var watch = new Stopwatch();
+    watch.start();
+    var decoded = _converter.convert(event.detail);
+    watch.stop();
+    _LOGGER.finest('Decoded {elapsedMilliseconds ${watch.elapsedMilliseconds}');
+    return decoded;
+    //return _converter.convert(event.detail);
   }
   
   ChunkedConversionSink startChunkedConversion(
@@ -193,7 +205,13 @@ class _MessageEventDecoderSink extends ChunkedConversionSink {
   
   void add(chunk) {
     if(_closed) throw new StateError('Only one chunk may be added');
-    _sink.add(_converter.convert(chunk.detail));
+    
+    var watch = new Stopwatch();
+    watch.start();
+    var decoded = _converter.convert(chunk.detail);
+    watch.stop();
+    _LOGGER.finest('Decoded {elapsedMilliseconds ${watch.elapsedMilliseconds}');
+    _sink.add(decoded);
     _closed = true;
   }
 

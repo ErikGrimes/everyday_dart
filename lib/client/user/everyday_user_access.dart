@@ -2,17 +2,16 @@
 // file for details. All rights reserved. Use of this source code is licenced 
 // under the Apache License, Version 2.0.  See the LICENSE file for details.
 
-import 'dart:html';
+library everyday.client.user.everyday_user_access;
 
 import 'package:logging/logging.dart';
 import 'package:polymer/polymer.dart';
 
-import '../../shared/user/user.dart';
+import 'package:everyday_dart/shared/user/user.dart';
 
-import '../polymer/polyfills.dart';
 
 @CustomTag('everyday-user-access')
-class EverydayUserAccess extends PolymerElement with CustomEventsMixin, ObservableMixin  {
+class EverydayUserAccess extends PolymerElement {
   
   static final Logger _LOGGER = new Logger('everyday.user.everyday_user_access');
   
@@ -27,19 +26,14 @@ class EverydayUserAccess extends PolymerElement with CustomEventsMixin, Observab
   @published
   UserService service;
   
-  @published
-  get onEverydaySignIn => this.customEventHandlers['on-everyday-sign-in'];
-  
-  set onEverydaySignIn(value){
-    this.customEventHandlers['on-everyday-sign-in'] = value;
-  }
+  EverydayUserAccess.created() : super.created();
   
   signIn(event){
     event.preventDefault();
     _LOGGER.info('Signin requested');
     service.signIn(new EmailPasswordToken(email, password)).then((user){
       _LOGGER.info('Signin successful');
-      this.dispatchCustomEvent('everyday-sign-in', user);
+      this.fire('everyday-sign-in', detail:user);
     }).catchError((error){
       _LOGGER.info('Signin unsuccessful', error);
     });  

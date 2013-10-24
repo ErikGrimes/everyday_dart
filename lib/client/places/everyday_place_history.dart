@@ -11,11 +11,11 @@ import 'package:logging/logging.dart';
 import 'package:polymer/polymer.dart';
 import 'package:polymer_expressions/filter.dart';
 
-import 'places.dart';
+import 'package:everyday_dart/client/places/places.dart';
 
 
 @CustomTag('everyday-place-history')
-class PlaceHistory extends PolymerElement with ObservableMixin {
+class PlaceHistory extends PolymerElement {
 
   final Logger _LOGGER = new Logger('everyday.client.places.everyday_place_history');
  
@@ -28,8 +28,10 @@ class PlaceHistory extends PolymerElement with ObservableMixin {
    
    @published
    Transformer<String,Place> transformer;
+   
+   PlaceHistory.created() : super.created();
   
-  inserted(){
+  enteredView(){
     _configure();
     _selfSub = this.changes.listen(_propertyChanged);
   }

@@ -6,11 +6,7 @@ import 'package:logging/logging.dart';
 import '../../shared/convert/stream.dart';
 import '../../shared/isolate/isolate.dart';
 
-abstract class Disposable {
-  bool get isDisposed;
-  Future get disposed;
-  dispose();
-}
+
 
 abstract class MessageHandler<T> implements Stream, StreamSink, Disposable {
   

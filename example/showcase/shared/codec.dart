@@ -9,9 +9,11 @@ import 'dart:convert';
 import 'package:everyday_dart/shared/rpc/serialization.dart' as rpc;
 import 'package:everyday_dart/shared/user/serialization.dart' as user;
 import 'package:everyday_dart/shared/patch/serialization.dart' as patch;
+import 'package:everyday_dart/shared/async/serialization.dart' as async;
 import 'package:everyday_dart/shared/convert/json.dart';
 import 'package:everyday_dart/shared/convert/serialization.dart';
 import 'package:serialization/serialization.dart';
+
 
 import 'model.dart';
 
@@ -22,6 +24,7 @@ class EverydayShowcaseCodec extends Codec {
     rpc.configure(serialization);
     user.configure(serialization);
     patch.configure(serialization);
+    async.configure(serialization);
     serialization.addRule(new ProfileRule());
     serialization.addRule(new ContactInfoRule());
     serialization.addRule(new AddressRule());

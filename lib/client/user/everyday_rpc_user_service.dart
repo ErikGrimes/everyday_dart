@@ -4,14 +4,12 @@ import 'dart:async';
 
 import 'package:polymer/polymer.dart';
 
-import '../../shared/user/user.dart';
-import '../../shared/rpc/invoker.dart';
-
-import '../polymer/polyfills.dart';
+import 'package:everyday_dart/shared/user/user.dart';
+import 'package:everyday_dart/shared/rpc/invoker.dart';
 
 @CustomTag('everyday-rpc-user-service')
 class EverydayRpcUserService extends PolymerElement 
-with ObservableMixin, CustomEventsMixin implements UserService {
+implements UserService {
   
   static const Duration DEFAULT_TIMEOUT = const Duration(seconds:1);
   
@@ -22,6 +20,8 @@ with ObservableMixin, CustomEventsMixin implements UserService {
   
   @published
   var invoker;
+  
+  EverydayRpcUserService.created() : super.created();
   
   Future<User> signIn(AuthToken token, [timeout= DEFAULT_TIMEOUT]) {
     return invoker.call(endpoint, 

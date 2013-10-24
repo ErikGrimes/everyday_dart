@@ -3,9 +3,9 @@
  licenced under the Apache License, Version 2.0.  See the LICENSE file for 
  details. --> 
 
-<polymer-element name='profile-editor' extends='form'>
+<polymer-element name='profile-editor'>
 <template>
-
+  <form novalidate>
     <fieldset>
       <legend>profile</legend>
       
@@ -85,6 +85,8 @@
        </fieldset>  
 
      <button on-click='save'>save</button>
+     
+     </form>
 </template>
 <script type='application/dart' src='profile_editor.dart'></script>
 </polymer-element>

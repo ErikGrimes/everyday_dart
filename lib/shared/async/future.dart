@@ -3,7 +3,7 @@ library everyday.shared.async.future;
 import 'dart:async';
 
 class TimedOutException implements Exception {
-  
+  toString() => 'FUTURE_TIMED_OUT';
 }
 
 class TimedCompleter implements Completer {
@@ -81,9 +81,7 @@ class LimitedWaitFuture<T> implements Future<T> {
     
   }
   
-  Duration get timeRemaining {
-    return _completer.timeRemaining;
-  }
+  Duration get timeLeft => _completer.timeLeft;
   
   Future then(onValue(T value), { onError(Object error) }) {
     return _completer.future.then(onValue, onError: onError);

@@ -152,8 +152,8 @@ class EverydayShowcase extends PolymerElement {
     profileChanged = profileBuffer;
     profileBuffer = new List();
     
-    this.shadowRoot.query('#profile-persist').xtag.changed = profileChanged;
-    this.shadowRoot.query('#profile-observer').xtag.changed = profileBuffer;
+    this.shadowRoot.querySelector('#profile-persist').changed = profileChanged;
+    this.shadowRoot.querySelector('#profile-observer').changed = profileBuffer;
 
     Observable.dirtyCheck();
   }
@@ -164,7 +164,7 @@ class EverydayShowcase extends PolymerElement {
   }
   
   editProfile(event){
-    place.value = new ProfilePlace(event.target.attributes['profile-key']);
+    place.value = new ProfilePlace(event.target.attributes['profileKey']);
     Observable.dirtyCheck();
   }
   

@@ -3,8 +3,6 @@
  licenced under the Apache License, Version 2.0.  See the LICENSE file for 
  details. --> 
  
-
-
 <link rel='import' href='everyday_showcase_codec.html'>
 <link rel='import' href='packages/everyday_dart/client/io/everyday_websocket.html'>
 <link rel='import' href='packages/everyday_dart/client/rpc/everyday_rpc.html'>
@@ -86,7 +84,7 @@
         <template repeat='{{profile in profiles}}'>
           <li>
             <span>profile {{profile.key}}</span>
-            <button on-click='editProfile' profile-key='{{profile.key}}'>edit</button>
+            <button on-click='editProfile' profileKey='{{profile.key}}'>edit</button>
             </li>
         </template>
         </ul>

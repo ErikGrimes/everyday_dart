@@ -21,17 +21,18 @@ import 'package:everyday_dart/client/io/everyday_socket.dart';
 final Logger _LOGGER = new Logger('everyday.rpc.everyday_rpc');
 
 @CustomTag('everyday-rpc')
-class EverydayRpc extends PolymerElement implements Invoker  {
+class EverydayRpc extends PolymerElement implements Invoker {
   
-
+  @published
+  int defaultTimeout = 1000;
+    
+  @published
+  Codec codec;
   
-  static final Symbol CODEC = const Symbol('codec');
-  static final Symbol DEFAULT_TIMEOUT = const Symbol('defaultTimeout');
-  static final Symbol SOCKET = const Symbol('socket');
+  @published
+  EverydaySocket socket;
   
   StreamController _outbound;
-  
-  StreamSubscription _selfSub;
   
   Map _completers = new Map();
   
@@ -41,16 +42,10 @@ class EverydayRpc extends PolymerElement implements Invoker  {
   
   Duration _defaultTimeout = new Duration(milliseconds: 1000);
   
-  @published
-  int defaultTimeout = 1000;
-  
-  @published
-  Codec codec;
-  
-  @published
-  EverydaySocket socket;
+  Timer _reconfigureJob;
   
   EverydayRpc.created() : super.created();
+  
   
   enteredView(){
    
@@ -58,13 +53,10 @@ class EverydayRpc extends PolymerElement implements Invoker  {
     
     _configure();
     
-    _selfSub = this.changes.listen(_propertyChanged);
-    
   }
   
   leftView(){
     _unconfigure();
-    _selfSub.cancel();
     super.leftView();
   }
   
@@ -75,21 +67,31 @@ class EverydayRpc extends PolymerElement implements Invoker  {
     return _call(endpoint, method, invocationType, positional:positional, named:named, timeout: timeout);
   }
   
-  _propertyChanged(List<ChangeRecord> records){
-    for(var cr in records){
-      if(cr.field == DEFAULT_TIMEOUT) _defaultTimeout = new Duration(milliseconds: defaultTimeout);
-      if(_changeRequiresReconfigure(cr)){
-        _unconfigure();
-        _configure();
-        break;
-      }
+  defaultTimeoutChanged(oldValue){
+    _defaultTimeout = new Duration(milliseconds: defaultTimeout);
+  }
+  
+  codecChanged(oldValue){
+    this._queueReconfigure();
+  }
+  
+  socketChanged(oldValue){
+    this._queueReconfigure();
+  }
+  
+  _queueReconfigure(){
+    if(_reconfigureJob != null){
+      _reconfigureJob.cancel();
     }
+    _reconfigureJob = new Timer(Duration.ZERO, _reconfigure);
   }
   
-  _changeRequiresReconfigure(cr){
-    return CODEC == cr.field ||SOCKET == cr.field; 
+  _reconfigure(){
+    _reconfigureJob = null;
+    _unconfigure();
+    _configure();
   }
-  
+ 
   get _nextCallId => _random.nextInt(4294967296);  
   
   Future _call(String endpoint, String method, InvocationType invocationType, {List positional, Map named, Duration timeout}){
@@ -129,7 +131,7 @@ class EverydayRpc extends PolymerElement implements Invoker  {
   }
  
   _configure(){ 
-    if(_allAttributesSet()){ 
+    if(_isConfigured){ 
       //TODO Figure out proper cleanup and error handling
       var decoderStream = new ConverterStream(new _MessageEventDecoder(codec.decoder));
       socket.on['everyday-socket-message'].listen((data){
@@ -142,7 +144,7 @@ class EverydayRpc extends PolymerElement implements Invoker  {
 
   }
   
-  _allAttributesSet() {
+  get _isConfigured {
     return socket != null && codec != null;
   }
   
@@ -170,7 +172,7 @@ class EverydayRpc extends PolymerElement implements Invoker  {
     _socketSubs.forEach((s){s.cancel();});
     _socketSubs.clear();
   }
-  
+ 
 }
 
 class _MessageEventDecoder extends Converter {

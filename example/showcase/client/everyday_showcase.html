@@ -31,34 +31,40 @@
   <everyday-websocket 
     id='socket' 
     url='ws://localhost:8080'
-    on-everyday-socket-offline='setOffline'
-    on-everyday-socket-online='setOnline'>
+    on-everyday-socket-offline='{{setOffline}}'
+    on-everyday-socket-online='{{setOnline}}'>
   </everyday-websocket>     
+     
      
  <everyday-rpc
     id='rpc'
-    codec='{{codec}}'
-    socket='{{socket}}'>
+    codec='{{ $["codec"] }}'
+    socket='{{ $["socket"] }}'>
  </everyday-rpc>
- 
+  
  <everyday-rpc-entity-manager 
     id='entity-manager'
-    invoker='{{ rpc }}'>
+    invoker='{{ $["rpc"] }}'>
   </everyday-rpc-entity-manager>
+     
   
    <everyday-rpc-user-service 
     id='user-service'
-    invoker='{{ rpc }}'>
+    invoker='{{ $["rpc"] }}'>
   </everyday-rpc-user-service>
+  
+
   
   <everyday-place-history transformer='{{placesTransformer}}' place='{{place}}'>
   </everyday-place-history>
   
+  
+  
   <template if='{{displayUserAccess}}'> 
                      
     <everyday-user-access 
-      service='{{userService}}' 
-      on-everyday-sign-in='signedIn'>
+      service='{{ $["userService"] }}' 
+      on-everyday-sign-in='{{signedIn}}'>
     </everyday-user-access>
     
   </template>
@@ -72,9 +78,9 @@
       <everyday-persistence-find-all 
         entityManager='{{entityManager}}' 
         entityType='{{profileType}}' 
-        on-everyday-success='profilesLoaded' 
+        on-everyday-success='{{profilesLoaded}}' 
         on-everyday-error='profilesNotLoaded' 
-        auto='{{true}}'>
+        auto='true'>
       </everyday-persistence-find-all> 
       
       <template if='{{profiles}}'>
@@ -93,13 +99,13 @@
    
     <template if='{{isProfilePlace}}'>
      <everyday-persistence-find-by-key 
-          entityManager='{{entityManager}}' 
+          entityManager='{{ $["entityManager"]}}' 
           entityType='{{profileType}}' 
           entityKey='{{profileKey}}'
-          auto='{{true}}'
-          createIfAbsent='{{true}}'
-          on-everyday-success='profileLoaded'
-          on-everyday-error='profileNotLoaded'>
+          auto='true'
+          createIfAbsent='true'
+          on-everyday-success='{{profileLoaded}}'
+          on-everyday-error='{{profileNotLoaded}}'>
         </everyday-persistence-find-by-key>
         
         <template id='profile-editor' if='{{profile}}'>
@@ -112,25 +118,27 @@
           
           <everyday-persistence-persist
             id='profile-persist'
-            entityManager='{{entityManager}}'
+            entityManager='{{ $["entityManager"] }}'
             entityKey='{{profileKey}}'
             entityType='{{profileType}}'
 
-            on-everyday-success='profilePersisted'
-            on-everyday-error='profileNotPersisted'>
+            on-everyday-success='{{profilePersisted}}'
+            on-everyday-error='{{profileNotPersisted}}'>
           </everyday-persistence-persist>
           
           <profile-editor 
             id='profile-editor' 
             profile='{{profile}}' 
-            on-everyday-save='persistProfile'>
+            on-everyday-save='{{persistProfile}}'>
           </profile-editor>
           
-        </template> <!-- editor -->
+        </template> 
           
-    </template> <!-- profile place -->
+    </template> 
       
-  </template> <!-- display main -->
+  </template> 
+  
+  
 </div>
   </template>
 

@@ -18,57 +18,79 @@ import 'package:everyday_dart/client/places/places.dart';
 class PlaceHistory extends PolymerElement {
 
   final Logger _LOGGER = new Logger('everyday.client.places.everyday_place_history');
- 
-   StreamSubscription _selfSub;
-   StreamSubscription _placeSub;
-   StreamSubscription _locationSub;
   
    @published
    ObservableBox place;
    
    @published
    Transformer<String,Place> transformer;
+  
+   Timer _reconfigureJob;
+   
+   StreamSubscription _placeSub;
+   
+   StreamSubscription _locationSub;
    
    PlaceHistory.created() : super.created();
   
   enteredView(){
     super.enteredView();
+    _queueReconfigure();
+  }
+  
+  leftView(){
+    _unconfigure();
+    super.leftView();
+  }
+  
+  _queueReconfigure(){
+    if(_reconfigureJob != null){
+      _reconfigureJob.cancel();
+    }
+    _reconfigureJob = new Timer(Duration.ZERO, _reconfigure);
+  }
+  
+  _reconfigure(){
+    _reconfigureJob = null;
+    _unconfigure();
     _configure();
-    _selfSub = this.changes.listen(_propertyChanged);
   }
   
   _configure(){
     if(_requiredAttributesSet){
       _locationSub = window.onPopState.listen((_){
-        _locationChanged(window.location.pathname);
+        _updatePlace(window.location.pathname);
       });
       _placeSub = place.changes.listen((crs){
-       _placeChanged();
+       _updateHistory();
       });
     }
   }
   
   bool get _requiredAttributesSet {
-    return place != null && transformer != null;
+    return this.place != null && this.transformer != null;
   }
   
   _unconfigure(){
     _cancelPlaceSub();
-    _locationSub.cancel();
-  }
-  
-  _propertyChanged(List crs){
-    _unconfigure();
-    _configure();
+    _cancelLocationSub();
   }
   
   _cancelPlaceSub() {
     if(_placeSub != null){
       _placeSub.cancel();
     }
+    _placeSub = null;
+  }
+  
+  _cancelLocationSub(){
+    if(_locationSub != null){
+      _locationSub.cancel();
+    }
+    _locationSub = null;
   }
 
-  _placeChanged(){
+  _updateHistory(){
     _LOGGER.fine('Place change ${place.value}');
     String placePathname = transformer.forward(place.value);
     if(placePathname != window.location.pathname){
@@ -77,7 +99,7 @@ class PlaceHistory extends PolymerElement {
     }
   }
   
-  _locationChanged(String location){
+  _updatePlace(String location){
     var next = transformer.reverse(location); 
     if(place.value != next){
       _LOGGER.fine('Location change ${location}');
@@ -86,10 +108,6 @@ class PlaceHistory extends PolymerElement {
     }
   }
   
-  leftView(){
-    _unconfigure();
-    _selfSub.cancel();
-    super.leftView();
-  }
+
    
 }

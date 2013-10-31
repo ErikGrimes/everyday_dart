@@ -23,25 +23,10 @@ class EverydayShowcase extends PolymerElement {
   Type profileType = Profile;
   
   @observable
-  var entityManager;
-  
-  @observable
-  var codec;
-  
-  @observable
-  var socket;
-  
-  @observable
-  var rpc;
-  
-  @observable
   var _profilePersist;
   
   @observable
   var _profileObserver;
-  
-  @observable
-  var userService;
   
   @observable
   var profile;
@@ -88,25 +73,13 @@ class EverydayShowcase extends PolymerElement {
     
     super.enteredView();
     
-    //https://code.google.com/p/dart/issues/detail?id=14172
-    _workaroundBug14172();
-    
     _bindPlaces();
     
     place.value = new ProfilesPlace();
     
-    Observable.dirtyCheck();
-    
+    Observable.dirtyCheck();   
    
   } 
-  
-  _workaroundBug14172(){
-    rpc = $['rpc'];
-    codec = $['codec'];
-    socket = $['socket'];
-    entityManager = $['entity-manager'];
-    userService = $['user-service'];
-  }
   
   _bindPlaces(){
     onPropertyChange(place, #value,(){
@@ -217,8 +190,8 @@ _logToConsole(LogRecord lr){
   json['logger'] = lr.loggerName;
   json['level'] = lr.level.name;
   json['message'] = lr.message;
-  if(lr.exception != null){
-    json['exception'] = lr.exception;
+  if(lr.error != null){
+    json['error'] = lr.error;
   }
   print(json);
 }

@@ -12,7 +12,13 @@
   <link rel='stylesheet' href='assets/flat_ui/css/flat-ui.css'>
   <link rel='import' href='everyday_showcase.html'>
   
-    <script type="application/dart" src="packages/polymer/init.dart"></script>
+  <script type='application/dart'>
+    import 'package:polymer/init.dart';
+    //This export won't be needed after 
+    //https://code.google.com/p/dart/issues/detail?id=14542 is fixed.
+    export 'package:polymer/init.dart';
+  </script>
+
     <script src="packages/browser/dart.js"></script>
   
 </head>

@@ -33,7 +33,7 @@ class EverydayUserAccess extends PolymerElement {
     _LOGGER.info('Signin requested');
     service.signIn(new EmailPasswordToken(email, password)).then((user){
       _LOGGER.info('Signin successful');
-      this.fire('everyday-sign-in', detail:user);
+      this.fire('everydaysignin', detail:user);
     }).catchError((error){
       _LOGGER.info('Signin unsuccessful', error);
     });  

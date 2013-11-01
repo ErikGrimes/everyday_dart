@@ -21,9 +21,6 @@ const Duration _DEFAULT_TIMEOUT = const Duration(seconds: 1);
 class EverydayRpcEntityManager extends PolymerElement 
 implements EntityManager {
   
-  static const Symbol INVOKER = const Symbol('invoker');
-  static const Symbol ENDPOINT = const Symbol('endpoint');
-  
   static const String DEFAULT_ENDPOINT = 'entity-manager';
   
   @published
@@ -34,7 +31,6 @@ implements EntityManager {
   
   EverydayRpcEntityManager.created() : super.created();
   
- 
   Future<Entity> findByKey(String type, var key, {Duration timeout}) {
     return invoker.call(endpoint, 'findByKey',
         InvocationType.INVOKE, positional:[type, key]);
@@ -58,7 +54,5 @@ implements EntityManager {
   Future persist(String type, var key, List<ObjectPatchRecord> changes, {Duration timeout}) {
     return invoker.call(endpoint, 'persist', InvocationType.INVOKE, positional:[type, key, changes], timeout:timeout);
   }
-  
-  
   
 }

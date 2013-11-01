@@ -61,31 +61,31 @@ abstract class EverydaySocketMixin implements EverydaySocket {
   start(){
     if(!isStopped) throw new StateError('Tried to start an already started socket');
     _state = SocketState.STARTED;
-    this.fire('everyday-socket-start');
+    this.fire('everydaysocketstart');
   }
   
   stop(){
     if(isStopped) throw new StateError('Tried to stop an already stopped socket');
     _state = SocketState.STOPPED;
-    this.fire('everyday-socket-stop');
+    this.fire('everydaysocketstop');
   }
   
   fireMessage(detail){
-    this.fire('everyday-socket-message', detail:detail);
+    this.fire('everydaysocketmessage', detail:detail);
   }
   
   fireOnline(){
     _state = SocketState.ONLINE;
-    this.fire('everyday-socket-online');
+    this.fire('everydaysocketonline');
   }
   
   fireOffline(){
     _state = SocketState.OFFLINE;
-    this.fire('everyday-socket-offline');
+    this.fire('everydaysocketoffline');
   }
   
   fireError(detail){
-    this.fire('everyday-socket-error',detail:detail);
+    this.fire('everydaysocketerror',detail:detail);
   }
   
 }

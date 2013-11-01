@@ -134,19 +134,17 @@ class _MutableFieldsScan {
     var variables = new Set();
     for(ClassMirror cm in scanner){  
       _LOGGER.finest('Scanning ${cm.simpleName}');
-      cm.getters.forEach((symbol, mirror){
-        if(!mirror.isPrivate){
-          getters.add(symbol);
+      cm.declarations.forEach((symbol, mirror){
+        if(mirror.isPrivate) return;
+        if(mirror is MethodMirror &&  !mirror.isStatic && !mirror.isPrivate){
+          if(mirror.isGetter){
+            getters.add(symbol);
+          }else if(mirror.isSetter){
+            setters.add(symbol);
+          }
         }
-      });
-      cm.setters.forEach((symbol, mirror){
-        if(!mirror.isPrivate){
-          setters.add(symbol);
-        }
-      });
-      cm.variables.forEach((symbol,mirror){
-        if(!mirror.isFinal && !mirror.isPrivate){
-            variables.add(symbol);
+        if(mirror is VariableMirror && !mirror.isFinal && !mirror.isPrivate && !mirror.isStatic){
+          variables.add(symbol);
         }
       });
     } 
@@ -187,15 +185,15 @@ class _ObjectBinding {
     _sub = observable.changes.listen((crs){
         List records = [];
         for(var cr in crs){
-          var binding = _bindings[cr.field];
+          var binding = _bindings[cr.name];
           if(binding != null){
               binding.cancel();
           }
-          var value = mirror.getField(cr.field).reflectee;
+          var value = mirror.getField(cr.name).reflectee;
           if(value != null){
-            var target = _appendToPath(path, cr.field); 
+            var target = _appendToPath(path, cr.name); 
             if(value is Observable){
-              _bindings[cr.field] = _bindingFor(target, value, sink);
+              _bindings[cr.name] = _bindingFor(target, value, sink);
             }
             records.add(new PropertyPatchRecord(target, value));
           }
@@ -223,7 +221,6 @@ class _ObjectBinding {
   
 }
 
-//TODO observe the observables with the list
 class _ListBinding {
   
   static final _LOGGER = new Logger('ObjectPatchObserver._ListBinding');
@@ -241,7 +238,7 @@ class _ListBinding {
             if(end >= observable.length){
               end = observable.length;
             }
-            records.add(new ListPatchRecord(path,cr.index, cr.addedCount, cr.removedCount, observable.sublist(cr.index, end)));
+            records.add(new ListPatchRecord(path,cr.index, cr.addedCount, cr.removed.length, observable.sublist(cr.index, end)));
           }
         }
         sink.add(records);

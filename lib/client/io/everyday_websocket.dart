@@ -16,10 +16,6 @@ import 'package:everyday_dart/client/io/everyday_socket.dart';
 class EverydayWebsocket extends PolymerElement 
   with EverydaySocketMixin
   implements EverydaySocket {
-  
-  static const Symbol RECONNECT_DELAY = const Symbol('reconnectDelay');
-  static const Symbol CONNECT_TIMEOUT = const Symbol('connectTmeout');
-  static const Symbol URL = const Symbol('url');
 
   static final _LOGGER = new Logger('everyday.io.everyday_websocket');
   

@@ -22,7 +22,7 @@ class ProfileEditor extends PolymerElement {
   
   save(e){
     e.preventDefault();
-    this.fire('everyday-save', detail: profile);
+    this.fire('everydaysave', detail: profile);
   }
   
 }

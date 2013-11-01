@@ -17,14 +17,6 @@ import 'package:everyday_dart/client/mixins.dart';
 @CustomTag('everyday-persistence-find-all')
 class EverydayPersistenceFindAll extends PolymerElement with AsynchronousEventsMixin {
   
-  static const Symbol AUTO = const Symbol('auto');
-  static const Symbol ENTITY_TYPE = const Symbol('entityType');
-  static const Symbol ENTITY_MANAGER= const Symbol('entityManager');
-  static const Symbol RESULTS = const Symbol('results');
-  
-  StreamSubscription _selfSub;
-  Map _subs = {};
-  
   @published
   bool auto;
   
@@ -37,38 +29,38 @@ class EverydayPersistenceFindAll extends PolymerElement with AsynchronousEventsM
   @published
   EntityManager entityManager;
   
+  Timer _autoGoJob;
+  
   EverydayPersistenceFindAll.created() : super.created();
   
   enteredView(){
     
     super.enteredView();
     
-    if(auto){
-      go();
-    }
+    _autoGo();
   }
   
-  leftView(){
-    _selfSub.cancel();
-    super.leftView();
+  
+  autoChanged(old){
+    _autoGo();
   }
   
-  _propertyChanged(List<ChangeRecord> records){
-    for(var cr in records){
-        if(_isExternallySetProperty(cr)){
-          if(auto){
-            go();
-          }
-          break;
-      }
-    }
+  entityManagerChanged(old){
+    _autoGo();  
   }
   
-  _isExternallySetProperty(cr){
-    return cr.field == ENTITY_TYPE || cr.field == ENTITY_MANAGER || cr.field == AUTO;
+  entityTypeChanged(old){
+    _autoGo();
+  }
+  
+  _autoGo(){
+    if(!auto) return;
+    if(this._autoGoJob != null) return;
+   _autoGoJob = new Timer(Duration.ZERO, go);
   }
   
   go(){
+    _autoGoJob = null;
     if(_requiredAttributesSet){
       entityManager.findAll(convertSymbolToString(reflectClass(entityType).simpleName)).then((results){
         this.results = results;
@@ -80,9 +72,6 @@ class EverydayPersistenceFindAll extends PolymerElement with AsynchronousEventsM
     }
   }
   
-  
-
   get _requiredAttributesSet => entityManager != null && entityType != null;
-  
   
 }

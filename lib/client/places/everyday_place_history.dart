@@ -15,7 +15,7 @@ import 'package:everyday_dart/client/places/places.dart';
 
 
 @CustomTag('everyday-place-history')
-class PlaceHistory extends PolymerElement {
+class EverydayPlaceHistory extends PolymerElement {
 
   final Logger _LOGGER = new Logger('everyday.client.places.everyday_place_history');
   
@@ -31,7 +31,7 @@ class PlaceHistory extends PolymerElement {
    
    StreamSubscription _locationSub;
    
-   PlaceHistory.created() : super.created();
+   EverydayPlaceHistory.created() : super.created();
   
   enteredView(){
     super.enteredView();
@@ -44,9 +44,7 @@ class PlaceHistory extends PolymerElement {
   }
   
   _queueReconfigure(){
-    if(_reconfigureJob != null){
-      _reconfigureJob.cancel();
-    }
+    if(_reconfigureJob != null) return;
     _reconfigureJob = new Timer(Duration.ZERO, _reconfigure);
   }
   
@@ -64,6 +62,7 @@ class PlaceHistory extends PolymerElement {
       _placeSub = place.changes.listen((crs){
        _updateHistory();
       });
+      _updateHistory();
     }
   }
   
@@ -94,7 +93,7 @@ class PlaceHistory extends PolymerElement {
     _LOGGER.fine('Place change ${place.value}');
     String placePathname = transformer.forward(place.value);
     if(placePathname != window.location.pathname){
-      //_router.gotoPath(placePathname,'');
+     print('placePathname = $placePathname');
       window.history.pushState(null, title, placePathname);
     }
   }

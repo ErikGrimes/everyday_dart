@@ -18,18 +18,8 @@ import 'package:everyday_dart/client/mixins.dart';
 class EverydayPersistenceFindByKey extends PolymerElement 
 with AsynchronousEventsMixin {
   
-  static const Symbol ENTITY_KEY = const Symbol('entityKey');
-  static const Symbol ENTITY_TYPE = const Symbol('entityType');
-  static const Symbol ENTITY_MANAGER= const Symbol('entityManager');
-  static const Symbol ENTITY = const Symbol('entity');
-  static const Symbol NEW_IF_ABSENT = const Symbol('newIfAbsent');
-  static const Symbol AUTO = const Symbol('auto');
-  
-  StreamSubscription _selfSub;
-  Map _subs = {};
-  
   @published
-  bool newIfAbsent = true;
+  bool createIfAbsent = true;
   
   @published
   bool auto = true;
@@ -48,40 +38,47 @@ with AsynchronousEventsMixin {
 
   EverydayPersistenceFindByKey.created() : super.created();
   
+  Timer _autoGoJob;
+  
   enteredView(){
     
     super.enteredView();
+   
+    _autoGo();
     
-    _selfSub = this.changes.listen(_propertyChanged);
-    if(auto){
-      go();
-    }
   }
   
-  leftView(){
-    _selfSub.cancel();
+  _autoGo(){
+    if(!auto) return;
+    if(this._autoGoJob != null) return;
+   _autoGoJob = new Timer(Duration.ZERO, go);
   }
   
-  _propertyChanged(List<ChangeRecord> records){
-    for(var cr in records){
-      if(_isExternallySetProperty(cr)){
-        if(auto){
-       //   go();
-        }
-        break;
-      }
-    }
+  
+  entityKeyChanged(old){
+    _autoGo();
   }
   
-  _isExternallySetProperty(cr){
-    return cr.field == ENTITY_KEY 
-        || cr.field == ENTITY_TYPE 
-        || cr.field == ENTITY_MANAGER 
-        || cr.field == AUTO 
-        || cr.field == NEW_IF_ABSENT;
+  entityTypeChanged(old){
+    _autoGo();
   }
+  
+  entityManagerChanged(old){
+    _autoGo();
+  }
+  
+  autoChanged(old){
+    _autoGo();
+  }
+  
+  createIfAbsentChanged(old){
+    _autoGo();
+  }
+  
+
   
   go(){
+    _autoGoJob = null;
     if(_requiredAttributesSet){
       if(entityKey != null){
         entityManager.findByKey(convertSymbolToString(reflectClass(entityType).simpleName), entityKey).then((result){
@@ -91,7 +88,7 @@ with AsynchronousEventsMixin {
         }).catchError((error){
             this.dispatchError(error);
         });
-      } else if(newIfAbsent) {
+      } else if(createIfAbsent) {
         entity = reflectClass(entityType).newInstance(const Symbol(''), []).reflectee;
         this.dispatchSuccess(entity);
         Observable.dirtyCheck();

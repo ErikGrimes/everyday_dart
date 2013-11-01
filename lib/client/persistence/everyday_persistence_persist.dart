@@ -17,19 +17,14 @@ import 'package:everyday_dart/client/mixins.dart';
 @CustomTag('everyday-persistence-persist')
 class EverydayPersistencePersist extends PolymerElement with AsynchronousEventsMixin {
   
-  static int nextId = 0;
-  
-  static const Symbol ENTITY_MANAGER = const Symbol('entityManager');
-  static const Symbol CHANGED = const Symbol('changed');
-  
-  StreamSubscription _selfSub;
-  
   static const Duration DEFAULT_TIMEOUT = const Duration(seconds: 1);
+  
+  @published
+  bool auto = false;
   
   @published
   int timeout;
   
-
   @published
   List changed = [];
   
@@ -48,28 +43,22 @@ class EverydayPersistencePersist extends PolymerElement with AsynchronousEventsM
   
   bool _changedWhilePending = false;
   
+  Timer _autoGoJob;
+  
   EverydayPersistencePersist.created() : super.created();
  
-  enteredView(){ 
-    super.enteredView();
-    _selfSub = this.changes.listen(_propertyChanged);
+  changedChanged(old){
+    _autoGo();
   }
   
-  leftView(){
-    _selfSub.cancel();
-    super.leftView();
-  }
-  
-  _propertyChanged(List records){
-    for(var cr in records){
-      if(_isChanged(cr)){
-        go();
-        break;
-      }
-    }  
+  _autoGo(){
+    if(!auto) return;
+    if(_autoGoJob != null) return;
+    _autoGoJob = new Timer(Duration.ZERO, go);
   }
   
   go(){
+    _autoGoJob = null;
     if(_attributesSet && changed != null && changed.isNotEmpty){
       if(_pending != null){
         _changedWhilePending = true;
@@ -78,11 +67,7 @@ class EverydayPersistencePersist extends PolymerElement with AsynchronousEventsM
       }
     }
   }
-  
-  _isChanged(cr){
-    return cr.field == CHANGED;
-  }
-  
+   
   _persist(){
     
     var summarizer = new Summarizer()..addAll(changed);

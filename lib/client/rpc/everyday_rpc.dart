@@ -80,9 +80,7 @@ class EverydayRpc extends PolymerElement implements Invoker {
   }
   
   _queueReconfigure(){
-    if(_reconfigureJob != null){
-      _reconfigureJob.cancel();
-    }
+    if(_reconfigureJob != null) return;
     _reconfigureJob = new Timer(Duration.ZERO, _reconfigure);
   }
   
@@ -134,7 +132,7 @@ class EverydayRpc extends PolymerElement implements Invoker {
     if(_isConfigured){ 
       //TODO Figure out proper cleanup and error handling
       var decoderStream = new ConverterStream(new _MessageEventDecoder(codec.decoder));
-      socket.on['everyday-socket-message'].listen((data){
+      socket.on['everydaysocketmessage'].listen((data){
         decoderStream.addStream(new Stream.fromIterable([data]));
       });
       var decoded = decoderStream.asBroadcastStream();

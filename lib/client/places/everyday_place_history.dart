@@ -93,7 +93,6 @@ class EverydayPlaceHistory extends PolymerElement {
     _LOGGER.fine('Place change ${place.value}');
     String placePathname = transformer.forward(place.value);
     if(placePathname != window.location.pathname){
-     print('placePathname = $placePathname');
       window.history.pushState(null, title, placePathname);
     }
   }

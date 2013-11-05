@@ -17,7 +17,7 @@ class ProfilesPlace extends Place {
 }
 
 class ProfilePlace extends Place {
-    final key;    
+    final int key;    
     ProfilePlace(this.key);
     ProfilePlace.newProfile(): this(null);
     operator ==(other){

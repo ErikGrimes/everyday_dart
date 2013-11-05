@@ -55,7 +55,7 @@ class EverydayShowcase extends PolymerElement {
   bool online = false;
   
   @observable
-  var profileKey;
+  int profileKey;
   
   @observable
   List profileBuffer = [];
@@ -95,8 +95,8 @@ class EverydayShowcase extends PolymerElement {
   
   profileLoaded(event,  detail, target){
     _LOGGER.info('Profile loaded');
-    profile = target.xtag.entity; 
-    profileKey = target.xtag.entity.key;
+    profile = target.entity; 
+    profileKey = target.entity.key;
   
     Observable.dirtyCheck();
   }
@@ -137,7 +137,7 @@ class EverydayShowcase extends PolymerElement {
   }
   
   editProfile(event){
-    place.value = new ProfilePlace(event.target.attributes['profileKey']);
+    place.value = new ProfilePlace(int.parse(event.target.attributes['profileKey']));
     Observable.dirtyCheck();
   }
   

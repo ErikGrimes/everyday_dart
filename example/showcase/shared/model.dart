@@ -35,6 +35,10 @@ class Profile extends Object with Observable implements Entity {
     this.contactInfo = valueOrDefault(contactInfo, (){return new ContactInfo();});
   }
   
+  String toString(){
+    return 'Profile {key: $key}';
+  }
+  
 }
 
 class ContactInfo extends Object with Observable  {

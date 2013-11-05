@@ -69,7 +69,7 @@
     
     <template if='{{isProfilesPlace}}'>
       
-      <button on-click='addProfile'>add</button>
+      <button on-click='{{addProfile}}'>add</button>
       
       <everyday-persistence-find-all 
         entityManager='{{ $["entity-manager"] }}' 

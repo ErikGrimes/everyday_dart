@@ -23,9 +23,11 @@ class EverydayPatchObserver extends PolymerElement {
   
   StreamSubscription _patches;
   
+  Timer _configureJob;
+  
   enteredView(){
     super.enteredView();
-    _configure();
+    _queueConfigure();
   }
   
   leftView(){
@@ -35,10 +37,16 @@ class EverydayPatchObserver extends PolymerElement {
   
   observeChanged(oldValue){
     _unconfigure();   
-    _configure();
+    _queueConfigure();
+  }
+  
+  _queueConfigure(){
+    if(_configureJob != null) return;
+    _configureJob = new Timer(Duration.ZERO, _configure);
   }
   
   _configure(){
+    _configureJob = null;
     if(observe != null){
       var watch = new Stopwatch();
       watch.start();

@@ -4,6 +4,7 @@
 
 library everyday.showcase.client.everyday_showcase;
 
+import 'dart:async';
 import 'dart:html';
 
 import 'package:polymer/polymer.dart';
@@ -62,14 +63,25 @@ class EverydayShowcase extends PolymerElement {
 
   List profileChanged = [];
   
+  Timer _logTimer;
+
+  StringBuffer _logBuffer = new StringBuffer();
+  
   final PlacesTransformer placesTransformer = new PlacesTransformer([new ProfilesPlaceTransformer(), new ProfilePlaceTransformer()]);
   
   EverydayShowcase.created(): super.created();
   
   enteredView(){
     
-    Logger.root.level = Level.ALL;
+    Logger.root.level = Level.FINEST;
     Logger.root.onRecord.listen(_logToConsole);
+    
+    _logTimer = new Timer.periodic(new Duration(seconds:1),(timer){
+      if(_logBuffer.isNotEmpty){
+        print(_logBuffer.toString());
+        _logBuffer.clear();
+      }
+    });
     
     super.enteredView();
     
@@ -80,6 +92,10 @@ class EverydayShowcase extends PolymerElement {
     Observable.dirtyCheck();   
    
   } 
+  
+  leftView(){
+    _logTimer.cancel();
+  }
   
   _bindPlaces(){
     onPropertyChange(place, #value,(){
@@ -182,17 +198,20 @@ class EverydayShowcase extends PolymerElement {
     Observable.dirtyCheck();
   }
   
+  _logToConsole(LogRecord lr){
+    if(lr.loggerName.startsWith('polymer')) return;
+    var json = new Map();
+    json['time'] = lr.time.toLocal().toString();
+    json['logger'] = lr.loggerName;
+    json['level'] = lr.level.name;
+    json['message'] = lr.message;
+    if(lr.error != null){
+      json['error'] = lr.error;
+    }
+    _logBuffer.writeln(json);
+  }
+  
 }
 
-_logToConsole(LogRecord lr){
-  var json = new Map();
-  json['time'] = lr.time.toLocal().toString();
-  json['logger'] = lr.loggerName;
-  json['level'] = lr.level.name;
-  json['message'] = lr.message;
-  if(lr.error != null){
-    json['error'] = lr.error;
-  }
-  print(json);
-}
+
 

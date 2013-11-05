@@ -110,7 +110,11 @@ class _MutableFieldsScan {
   
   static final Map<ClassMirror, _MutableFieldsScan> _cache = {};
   
-  static final OBSERVABLE_ANNOTATION = reflect(observable);
+  static final OBSERVABLE = reflectClass(Observable);
+  
+  static final OBJECT = reflectClass(Object);
+  
+  static final String OBJECT_WITH_OBSERVABLE = 'dart.core.Object with observe.src.observable.Observable';
   
   final ClassMirror type;
   
@@ -129,26 +133,21 @@ class _MutableFieldsScan {
   
   _MutableFieldsScan._(this.type){
     InterfacesScanner scanner = new InterfacesScanner(type); 
-    var getters = new Set();
-    var setters = new Set();
-    var variables = new Set();
+    var observables = new Set();
     for(ClassMirror cm in scanner){  
       _LOGGER.finest('Scanning ${cm.simpleName}');
+      if(cm == OBJECT || cm == OBSERVABLE || MirrorSystem.getName(cm.simpleName) == OBJECT_WITH_OBSERVABLE) break;
       cm.declarations.forEach((symbol, mirror){
-        if(mirror.isPrivate) return;
-        if(mirror is MethodMirror &&  !mirror.isStatic && !mirror.isPrivate){
-          if(mirror.isGetter){
-            getters.add(symbol);
-          }else if(mirror.isSetter){
-            setters.add(symbol);
-          }
-        }
-        if(mirror is VariableMirror && !mirror.isFinal && !mirror.isPrivate && !mirror.isStatic){
-          variables.add(symbol);
+        if(mirror is VariableMirror && !mirror.isPrivate && !mirror.isFinal && !mirror.isStatic){
+          for(var meta in mirror.metadata){
+            if(meta.reflectee is ObservableProperty){
+              observables.add(symbol);
+            }
+          }      
         }
       });
     } 
-    _mutableFields = new UnmodifiableSetView(getters.intersection(setters).union(variables));
+    _mutableFields = new UnmodifiableSetView(observables);
   }
   
   

@@ -23,10 +23,22 @@ final Logger _LOGGER = new Logger('server');
 
 String _databaseUrl = 'postgres://dev:dev@dev.local:5432/dev';
 
+Timer _logTimer;
+
+StringBuffer _logBuffer = new StringBuffer();
+
 main(){
   runZoned(() {
-   Logger.root.level = Level.ALL;
+   Logger.root.level = Level.FINEST;
     Logger.root.onRecord.listen(_logToConsole);
+    
+    _logTimer = new Timer.periodic(new Duration(seconds:1),(timer){
+      if(_logBuffer.isNotEmpty){
+        print(_logBuffer.toString());
+        _logBuffer.clear();
+      }
+    });
+    
     _LOGGER.info('Server started');
     _bindServerSocket().then((_) {
       _LOGGER.info('Server socket bound');
@@ -125,12 +137,16 @@ class EverydayShowcaseTransferableMessageHandler extends Object with EverydaySho
 
 
 _logToConsole(LogRecord lr){
+  if(lr.loggerName.startsWith('polymer')) return;
   var json = new Map();
   json['time'] = lr.time.toLocal().toString();
   json['logger'] = lr.loggerName;
   json['level'] = lr.level.name;
   json['message'] = lr.message;
-  print(json);
+  if(lr.error != null){
+    json['error'] = lr.error;
+  }
+  _logBuffer.writeln(json);
 }
 
 

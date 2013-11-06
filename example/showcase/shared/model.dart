@@ -31,9 +31,9 @@ class Profile extends Object with Observable implements Entity {
   @observable
   ContactInfo contactInfo;
   
-  Profile({this.key, this.fullName:'',this.addressAs:'', this.bornOn:'', contactInfo}){
-    this.contactInfo = valueOrDefault(contactInfo, (){return new ContactInfo();});
-  }
+  Profile() : this.from(contactInfo: new ContactInfo());
+  
+  Profile.from({this.key, this.fullName, this.addressAs, this.bornOn, this.contactInfo});
   
   String toString(){
     return 'Profile {key: $key}';
@@ -42,10 +42,6 @@ class Profile extends Object with Observable implements Entity {
 }
 
 class ContactInfo extends Object with Observable  {
-  
-  static const Symbol PHONE = const Symbol('phone');
-  static const Symbol EMAIL = const Symbol('email');
-  static const Symbol MAILING_ADDRESS = const Symbol('mailingAddress');
 
   @observable
   String phone;
@@ -56,18 +52,13 @@ class ContactInfo extends Object with Observable  {
   @observable
   Address mailingAddress;
   
-  ContactInfo({this.email:'', this.phone:'', mailingAddress}){
-    this.mailingAddress = valueOrDefault(mailingAddress,(){return new Address();});
-  }
+  ContactInfo() : this.from(mailingAddress: new Address());
+  
+  ContactInfo.from({this.email, this.phone, this.mailingAddress});
   
 }
 
 class Address extends Object with Observable  {
-  
-  static const Symbol STREET_OR_BOX = const Symbol('streetOrBox');
-  static const Symbol CITY = const Symbol('city');
-  static const Symbol STATE_OR_REGION = const Symbol('stateOrRegion');
-  static const Symbol POSTAL_CODE = const Symbol('postalCode');
   
   @observable
   String streetOrBox;
@@ -81,13 +72,8 @@ class Address extends Object with Observable  {
   @observable
   String postalCode;
   
-  Address({this.streetOrBox:'',this.city:'', this.stateOrRegion:'', this.postalCode:''});
+  Address() : this.from();
   
-}
-
-valueOrDefault(value, defaultGetter){
-  if(value != null){
-    return value;
-  }
-  return defaultGetter();
+  Address.from({this.streetOrBox, this.city, this.stateOrRegion, this.postalCode});
+  
 }

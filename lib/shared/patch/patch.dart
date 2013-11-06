@@ -104,11 +104,11 @@ class ListPatchRecord extends ObjectPatchRecord {
   
 }
 
-class _MutableFieldsScan {
+class _ObservableFieldsScan {
   
-  static final _LOGGER = new Logger('ObjectPatchObserver._MutableFieldsScan');
+  static final _LOGGER = new Logger('ObjectPatchObserver._ObservableFieldsScan');
   
-  static final Map<ClassMirror, _MutableFieldsScan> _cache = {};
+  static final Map<ClassMirror, _ObservableFieldsScan> _cache = {};
   
   static final OBSERVABLE = reflectClass(Observable);
   
@@ -118,20 +118,20 @@ class _MutableFieldsScan {
   
   final ClassMirror type;
   
-  Set _mutableFields;
+  Set _observableFields;
   
-  get mutableFields => _mutableFields;
+  get observableFields => _observableFields;
   
-  factory _MutableFieldsScan(ClassMirror type){
+  factory _ObservableFieldsScan(ClassMirror type){
     var scan = _cache[type];
     if(scan == null){
-      scan = new _MutableFieldsScan._(type); 
+      scan = new _ObservableFieldsScan._(type); 
       _cache[type] = scan;
     }
     return scan;
   }
   
-  _MutableFieldsScan._(this.type){
+  _ObservableFieldsScan._(this.type){
     InterfacesScanner scanner = new InterfacesScanner(type); 
     var observables = new Set();
     for(ClassMirror cm in scanner){  
@@ -147,7 +147,7 @@ class _MutableFieldsScan {
         }
       });
     } 
-    _mutableFields = new UnmodifiableSetView(observables);
+    _observableFields = new UnmodifiableSetView(observables);
   }
   
   
@@ -170,9 +170,9 @@ class _ObjectBinding {
     _LOGGER.finest('_Binding ${path}');
     
     var mirror = reflect(observable);
-    var scan = new _MutableFieldsScan(mirror.type);
+    var scan = new _ObservableFieldsScan(mirror.type);
     
-    scan.mutableFields.forEach((s){
+    scan.observableFields.forEach((s){
       
       //set initial bindings
       var value = mirror.getField(s).reflectee;
@@ -258,6 +258,8 @@ class _ListBinding {
  */
 class ObjectPatchObserver {
   
+  static final _LOGGER = new Logger('ObjectPatchObserver');
+  
   StreamController _changes;
   
   final Observable observable;
@@ -273,7 +275,10 @@ class ObjectPatchObserver {
   Stream get changes => _changes.stream;
   
   _observed(){
-    _binding = _bindingFor('/',observable, _changes);    
+    var watch = new Stopwatch()..start();
+    _binding = _bindingFor('/',observable, _changes);   
+    watch.stop();
+    _LOGGER.finest('_observed [${observable.runtimeType}] in ${watch.elapsedMilliseconds} ms');
   }
   
   _unobserved(){

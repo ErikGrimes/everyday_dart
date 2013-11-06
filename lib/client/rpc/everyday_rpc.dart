@@ -60,11 +60,11 @@ class EverydayRpc extends PolymerElement implements Invoker {
     super.leftView();
   }
   
-  Future call(String endpoint, String method, InvocationType invocationType, {List positional, Map named, Duration timeout}){
+  Future invoke(String endpoint, String method, InvocationType invocationType, {List positional, Map named, Duration timeout}){
     if(timeout == null){
       timeout = _defaultTimeout;
     }
-    return _call(endpoint, method, invocationType, positional:positional, named:named, timeout: timeout);
+    return _invoke(endpoint, method, invocationType, positional:positional, named:named, timeout: timeout);
   }
   
   defaultTimeoutChanged(oldValue){
@@ -90,9 +90,9 @@ class EverydayRpc extends PolymerElement implements Invoker {
     _configure();
   }
  
-  get _nextCallId => _random.nextInt(4294967296);  
+  get _nextInvocationId => _random.nextInt(4294967296);  
   
-  Future _call(String endpoint, String method, InvocationType invocationType, {List positional, Map named, Duration timeout}){
+  Future _invoke(String endpoint, String method, InvocationType invocationType, {List positional, Map named, Duration timeout}){
        
     if(positional == null){
       positional = new List();
@@ -102,7 +102,7 @@ class EverydayRpc extends PolymerElement implements Invoker {
       named = new Map();
     }
     
-    var call = new Call(_nextCallId, endpoint, method, invocationType, positional:positional, named:named);
+    var call = new Invocation(_nextInvocationId, endpoint, method, invocationType, positional:positional, named:named);
     
     var completer = new TimedCompleter(timeout);
     
@@ -136,8 +136,8 @@ class EverydayRpc extends PolymerElement implements Invoker {
         decoderStream.addStream(new Stream.fromIterable([data]));
       });
       var decoded = decoderStream.asBroadcastStream();
-      _socketSubs.add(decoded.where(((event){return event is CallResult;})).listen(_onCallResult));
-      _socketSubs.add(decoded.where(((event){return event is CallError;})).listen(_onCallError));
+      _socketSubs.add(decoded.where(((event){return event is InvocationResult;})).listen(_onCallResult));
+      _socketSubs.add(decoded.where(((event){return event is InvocationError;})).listen(_onCallError));
     }
 
   }
@@ -146,7 +146,7 @@ class EverydayRpc extends PolymerElement implements Invoker {
     return socket != null && codec != null;
   }
   
-  _onCallResult(CallResult msg){
+  _onCallResult(InvocationResult msg){
     var c = _completers.remove(msg.callId);
     _LOGGER.finest('Completing {callId: ${msg.callId}, elapsedMilliseconds: ${c.timeTaken.inMilliseconds}}');
     if(c != null && !c.isCompleted){
@@ -154,7 +154,7 @@ class EverydayRpc extends PolymerElement implements Invoker {
     }
   }
   
-  _onCallError(CallError msg){
+  _onCallError(InvocationError msg){
     _LOGGER.finest('Completing call ${msg.callId}');
     var c = _completers.remove(msg.callId);
     if(c != null && !c.isCompleted){

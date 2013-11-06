@@ -3,6 +3,11 @@
 Everyday Dart is an overview of some of the things I've learned as I go about building client/server web applications using polymer.dart 
 and dart.
 
+## Notes
+- Current development status requires [Dart SDK build 29803](http://gsdview.appspot.com/dart-editor-archive-continuous/29803/) (0.8.10.0)
+
+
+
 ## The example
 
 

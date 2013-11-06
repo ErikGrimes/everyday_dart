@@ -24,7 +24,7 @@ implements UserService {
   EverydayRpcUserService.created() : super.created();
   
   Future<User> signIn(AuthToken token, [timeout= DEFAULT_TIMEOUT]) {
-    return invoker.call(endpoint, 
+    return invoker.invoke(endpoint, 
         'signIn', 
         InvocationType.INVOKE, 
         positional: [token], 

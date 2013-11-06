@@ -32,27 +32,27 @@ implements EntityManager {
   EverydayRpcEntityManager.created() : super.created();
   
   Future<Entity> findByKey(String type, var key, {Duration timeout}) {
-    return invoker.call(endpoint, 'findByKey',
+    return invoker.invoke(endpoint, 'findByKey',
         InvocationType.INVOKE, positional:[type, key]);
   }
   
   Future<List<Entity>> findByKeys(String type, List keys, {Duration timeout}) {
-    return invoker.call(endpoint, 'findByKeys',
+    return invoker.invoke(endpoint, 'findByKeys',
         InvocationType.INVOKE, positional:[keys]);
   }
   
   Future<List<Entity>> findAll(String type, {Duration timeout}) {
-    return invoker.call(endpoint, 'findAll',
+    return invoker.invoke(endpoint, 'findAll',
         InvocationType.INVOKE, positional:[type]);
   }
   
   Future<List<Entity>> namedQuery(String name, String type, {Map params, Duration timeout}) {
-    return invoker.call(endpoint, 'namedQuery',
+    return invoker.invoke(endpoint, 'namedQuery',
         InvocationType.INVOKE, positional:[name, type], named: {'params': params});
   }
 
   Future persist(String type, var key, List<ObjectPatchRecord> changes, {Duration timeout}) {
-    return invoker.call(endpoint, 'persist', InvocationType.INVOKE, positional:[type, key, changes], timeout:timeout);
+    return invoker.invoke(endpoint, 'persist', InvocationType.INVOKE, positional:[type, key, changes], timeout:timeout);
   }
   
 }

@@ -2,7 +2,7 @@
 // file for details. All rights reserved. Use of this source code is licenced 
 // under the Apache License, Version 2.0.  See the LICENSE file for details.
 
-library everyday.rpc.everyday_rpc_call;
+library everyday.rpc.everyday_rpc_invocation;
 
 import 'dart:async';
 
@@ -12,8 +12,8 @@ import 'package:everyday_dart/shared/rpc/invoker.dart';
 
 import 'package:everyday_dart/client/mixins.dart';
 
-@CustomTag('everyday-rpc-call')
-class EverydayRpcCall extends PolymerElement with AsynchronousEventsMixin {
+@CustomTag('everyday-rpc-invocation')
+class EverydayRpcInvocation extends PolymerElement with AsynchronousEventsMixin {
  
   Invoker invoker;
   
@@ -40,7 +40,7 @@ class EverydayRpcCall extends PolymerElement with AsynchronousEventsMixin {
   @published
   var result;
   
-  EverydayRpcCall.created() : super.created();
+  EverydayRpcInvocation.created() : super.created();
   
   bool _inDom = false;
   
@@ -63,7 +63,7 @@ class EverydayRpcCall extends PolymerElement with AsynchronousEventsMixin {
   
   go(){
     _assertValid();
-    invoker.call(endpoint, 
+    invoker.invoke(endpoint, 
         method, 
         invocationType, 
         positional: positionalParameters, 

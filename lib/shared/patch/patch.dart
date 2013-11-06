@@ -149,13 +149,7 @@ class _ObservableFieldsScan {
     } 
     _observableFields = new UnmodifiableSetView(observables);
   }
-  
-  
-  _toGetterSymbol(symbol){
-    var symbolString = convertSymbolToString(symbol);
-    return new Symbol(symbolString.substring(0, symbolString.length-1));
-  }
-  
+ 
 }
 
 class _ObjectBinding {

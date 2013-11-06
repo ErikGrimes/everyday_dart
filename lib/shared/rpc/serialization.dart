@@ -4,6 +4,8 @@
 
 library everyday.shared.rpc.serialization;
 
+import "dart:core" hide Invocation;
+
 import 'package:serialization/serialization.dart';
 
 import 'messages.dart';
@@ -44,13 +46,12 @@ class InvocationTypeRule extends CustomRule {
     switch(state[0]){
       case 0:
         return InvocationType.INVOKE;
-      break;
       case 1:
         return InvocationType.GET;
-      break;
       case 2:
         return InvocationType.SET;
-      break;
+      default:
+        throw new StateError('Unknown InvocationType [${state[0]}]');
     }
   }
   setState(InvocationType a, List state) => {};

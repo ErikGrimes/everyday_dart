@@ -4,7 +4,7 @@ Everyday Dart is an overview of some of the things I've learned as I go about bu
 and dart.
 
 ## Notes
-- Current development status requires [Dart SDK build 29803](http://gsdview.appspot.com/dart-editor-archive-continuous/29803/) (0.8.10.0)
+- Current development status requires [Dart SDK build 29899](http://gsdview.appspot.com/dart-editor-archive-continuous/29899/) (0.8.10.0)
 
 
 

@@ -160,7 +160,7 @@ class _ObjectBinding {
   StreamSubscription _sub;
   Map<Symbol,dynamic> _bindings = {};
 
-  _ObjectBinding(path, observable, sink){
+  _ObjectBinding(String path, Observable observable, EventSink sink){
     _LOGGER.finest('_Binding ${path}');
     
     var mirror = reflect(observable);
@@ -220,10 +220,10 @@ class _ListBinding {
   
   StreamSubscription _sub;
   
-  _ListBinding(path, observable, sink){
+  _ListBinding(String path, ObservableList observable, EventSink sink){
     _LOGGER.finest('_ListBinding ${path}');
     var mirror = reflect(observable);
-    _sub = observable.changes.listen((crs){
+    _sub = observable.listChanges.listen((crs){
       List records = [];
         for(var cr in crs){
           if(cr is ListChangeRecord){
@@ -281,7 +281,7 @@ class ObjectPatchObserver {
   
 }
 
-_bindingFor(path, Observable observable, sink){
+_bindingFor(String path, Observable observable, sink){
   if(observable is ObservableList){
     return new _ListBinding(path,observable, sink);
   } else if(observable is Observable){

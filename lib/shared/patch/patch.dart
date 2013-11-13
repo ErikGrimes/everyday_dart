@@ -5,6 +5,9 @@
 library everyday.shared.patch.patch;
 
 import 'dart:async';
+
+@MirrorsUsed(metaTargets:
+  const [Reflectable, ObservableProperty])
 import 'dart:mirrors';
 
 import 'package:logging/logging.dart';
@@ -114,13 +117,17 @@ class _ObservableFieldsScan {
   
   static final OBJECT = reflectClass(Object);
   
+  static final CHANGE_NOTIFIER = reflectClass(ChangeNotifier);
+  
   static final String OBJECT_WITH_OBSERVABLE = 'dart.core.Object with observe.src.observable.Observable';
+  
+  static final String OBJECT_WITH_CHANGE_NOTIFIER = 'dart.core.Object with observe.src.change_notifier.ChangeNotifier';
   
   final ClassMirror type;
   
   Set _observableFields;
   
-  get observableFields => _observableFields;
+  Set get observableFields => _observableFields;
   
   factory _ObservableFieldsScan(ClassMirror type){
     var scan = _cache[type];
@@ -136,9 +143,14 @@ class _ObservableFieldsScan {
     var observables = new Set();
     for(ClassMirror cm in scanner){  
       _LOGGER.finest('Scanning ${cm.simpleName}');
-      if(cm == OBJECT || cm == OBSERVABLE || MirrorSystem.getName(cm.simpleName) == OBJECT_WITH_OBSERVABLE) break;
+      if(cm == OBJECT || 
+          cm == OBSERVABLE ||
+          cm == CHANGE_NOTIFIER ||
+          MirrorSystem.getName(cm.simpleName) == OBJECT_WITH_CHANGE_NOTIFIER ||
+          MirrorSystem.getName(cm.simpleName) == OBJECT_WITH_OBSERVABLE) break;
       cm.declarations.forEach((symbol, mirror){
-        if(mirror is VariableMirror && !mirror.isPrivate && !mirror.isFinal && !mirror.isStatic){
+        if((mirror is VariableMirror && !mirror.isFinal && !mirror.isStatic 
+            || (mirror is MethodMirror && mirror.isGetter)) && !mirror.isPrivate){
           for(var meta in mirror.metadata){
             if(meta.reflectee is ObservableProperty){
               observables.add(symbol);
@@ -149,13 +161,7 @@ class _ObservableFieldsScan {
     } 
     _observableFields = new UnmodifiableSetView(observables);
   }
-  
-  
-  _toGetterSymbol(symbol){
-    var symbolString = convertSymbolToString(symbol);
-    return new Symbol(symbolString.substring(0, symbolString.length-1));
-  }
-  
+ 
 }
 
 class _ObjectBinding {
@@ -166,7 +172,7 @@ class _ObjectBinding {
   StreamSubscription _sub;
   Map<Symbol,dynamic> _bindings = {};
 
-  _ObjectBinding(path, observable, sink){
+  _ObjectBinding(String path, Observable observable, EventSink sink){
     _LOGGER.finest('_Binding ${path}');
     
     var mirror = reflect(observable);
@@ -226,10 +232,10 @@ class _ListBinding {
   
   StreamSubscription _sub;
   
-  _ListBinding(path, observable, sink){
+  _ListBinding(String path, ObservableList observable, EventSink sink){
     _LOGGER.finest('_ListBinding ${path}');
     var mirror = reflect(observable);
-    _sub = observable.changes.listen((crs){
+    _sub = observable.listChanges.listen((crs){
       List records = [];
         for(var cr in crs){
           if(cr is ListChangeRecord){
@@ -287,12 +293,14 @@ class ObjectPatchObserver {
   
 }
 
-_bindingFor(path, Observable observable, sink){
+_bindingFor(String path, Observable observable, sink){
   if(observable is ObservableList){
     return new _ListBinding(path,observable, sink);
   } else if(observable is Observable){
     return new _ObjectBinding(path,observable, sink);
-  }   
+  } else {
+    throw new ArgumentError('Observable is not observable');
+  }
 }
 
 class _Node {

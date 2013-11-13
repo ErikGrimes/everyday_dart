@@ -10,12 +10,6 @@ import 'package:everyday_dart/shared/persistence/entity_manager.dart';
 
 class Profile extends Object with Observable implements Entity {
   
-  static const Symbol FULL_NAME = const Symbol('fullName');
-  static const Symbol ADDRESS_AS = const Symbol('addressAs');
-  static const Symbol BORN_ON = const Symbol('bornOn');
-  static const Symbol CONTACT_INFO = const Symbol('contactInfo');
-  static const Symbol KEY = const Symbol('key');
-  
   @observable
   int key;
   

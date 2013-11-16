@@ -21,7 +21,7 @@ class RpcMessageHandler extends Stream implements MessageHandler<Message> {
 
   RpcMessageHandler(this._router);
   
-  _handleCall(Call call){
+  _handleCall(Invocation call){
     _LOGGER.finest('Calling {callId: ${call.callId}, target: ${call.endpoint}, method: ${call.method}');
     var watch = new Stopwatch();
     watch.start();
@@ -29,7 +29,7 @@ class RpcMessageHandler extends Stream implements MessageHandler<Message> {
       _outbound.add(_);
     }).catchError((e){
       _outbound.add(e);
-    }, test: (e) => e is CallError)
+    }, test: (e) => e is InvocationError)
     .catchError((error){
       _LOGGER.warning('Unexpected error: $error', error);
     }).whenComplete((){
@@ -40,7 +40,7 @@ class RpcMessageHandler extends Stream implements MessageHandler<Message> {
   
 
   void add(event) {
-    if(event is Call){
+    if(event is Invocation){
       _handleCall(event);
     }
   }
@@ -103,12 +103,12 @@ class CallRouter {
   }
   
   //async vs sync methods
-  Future<dynamic> route(Call call){
+  Future<dynamic> route(Invocation call){
    var endpoint = _endpoints[call.endpoint];
    if(endpoint != null){
      return endpoint.apply(call);
    }else {
-     return new Future.value(new CallError(call.callId, 'No such endpoint ${call.endpoint}'));
+     return new Future.value(new InvocationError(call.callId, 'No such endpoint ${call.endpoint}'));
    }
   }
   
@@ -120,7 +120,7 @@ class _Invoker {
   
   _Invoker(this.target);
   
-  Future apply(Call call){
+  Future apply(Invocation call){
     switch(call.invocationType){
       case InvocationType.INVOKE:
       return _invoke(call);
@@ -133,15 +133,15 @@ class _Invoker {
   //TODO serialized errors?
   //TODO implement named arguments when dart does
   //TODO handle synchronous exceptions
-  _invoke(Call call){
+  _invoke(Invocation call){
     var im = reflect(target);
     var completer = new Completer();
     var rim = im.invoke(new Symbol(call.method), call.positional);
     if(rim.reflectee is Future){
       rim.reflectee.then((v){
-        completer.complete(new CallResult(call.callId, v));
+        completer.complete(new InvocationResult(call.callId, v));
       }).catchError((e){
-        completer.completeError(new CallError(call.callId, e.toString()));
+        completer.completeError(new InvocationError(call.callId, e.toString()));
       });
     }else {
       completer.complete(rim.reflectee);

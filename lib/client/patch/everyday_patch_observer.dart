@@ -48,12 +48,9 @@ class EverydayPatchObserver extends PolymerElement {
   _configure(){
     _configureJob = null;
     if(observe != null){
-      var watch = new Stopwatch();
-      watch.start();
       _patches = new ObjectPatchObserver(observe).changes.listen((patches){
         changed.addAll(patches);
       });
-      watch.stop();
     }
   }
   

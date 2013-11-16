@@ -12,9 +12,9 @@ class Message {
 }
 
 
-class Call extends Message {
+class Invocation extends Message {
   
-  static const String TYPE = 'call';
+  static const String TYPE = 'invocation';
   
   final int callId;
   final String endpoint;
@@ -23,25 +23,25 @@ class Call extends Message {
   final List positional;
   final Map named;
  
-  Call(this.callId, this.endpoint, this.method,  this.invocationType, {positional, named}): this.positional=positional, this.named=named,super(TYPE);
+  Invocation(this.callId, this.endpoint, this.method,  this.invocationType, {positional, named}): this.positional=positional, this.named=named,super(TYPE);
 }
 
-class CallResult extends Message {
+class InvocationResult extends Message {
   
   static const String TYPE = 'call_result';
   
   final int callId;
   final dynamic data;
  
-  CallResult(this.callId, this.data): super(TYPE);
+  InvocationResult(this.callId, this.data): super(TYPE);
 }
 
-class CallError extends Message {
+class InvocationError extends Message {
   
   static const String TYPE = 'call_error';
   
   final int callId;
   final dynamic error;
  
-  CallError(this.callId, this.error):super(TYPE);
+  InvocationError(this.callId, this.error):super(TYPE);
 }

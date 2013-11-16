@@ -5,6 +5,9 @@
 library everyday.shared.patch.patch;
 
 import 'dart:async';
+
+@MirrorsUsed(metaTargets:
+  const [Reflectable, ObservableProperty])
 import 'dart:mirrors';
 
 import 'package:logging/logging.dart';
@@ -104,41 +107,50 @@ class ListPatchRecord extends ObjectPatchRecord {
   
 }
 
-class _MutableFieldsScan {
+class _ObservableFieldsScan {
   
-  static final _LOGGER = new Logger('ObjectPatchObserver._MutableFieldsScan');
+  static final _LOGGER = new Logger('ObjectPatchObserver._ObservableFieldsScan');
   
-  static final Map<ClassMirror, _MutableFieldsScan> _cache = {};
+  static final Map<ClassMirror, _ObservableFieldsScan> _cache = {};
   
   static final OBSERVABLE = reflectClass(Observable);
   
   static final OBJECT = reflectClass(Object);
   
+  static final CHANGE_NOTIFIER = reflectClass(ChangeNotifier);
+  
   static final String OBJECT_WITH_OBSERVABLE = 'dart.core.Object with observe.src.observable.Observable';
+  
+  static final String OBJECT_WITH_CHANGE_NOTIFIER = 'dart.core.Object with observe.src.change_notifier.ChangeNotifier';
   
   final ClassMirror type;
   
-  Set _mutableFields;
+  Set _observableFields;
   
-  get mutableFields => _mutableFields;
+  Set get observableFields => _observableFields;
   
-  factory _MutableFieldsScan(ClassMirror type){
+  factory _ObservableFieldsScan(ClassMirror type){
     var scan = _cache[type];
     if(scan == null){
-      scan = new _MutableFieldsScan._(type); 
+      scan = new _ObservableFieldsScan._(type); 
       _cache[type] = scan;
     }
     return scan;
   }
   
-  _MutableFieldsScan._(this.type){
+  _ObservableFieldsScan._(this.type){
     InterfacesScanner scanner = new InterfacesScanner(type); 
     var observables = new Set();
     for(ClassMirror cm in scanner){  
       _LOGGER.finest('Scanning ${cm.simpleName}');
-      if(cm == OBJECT || cm == OBSERVABLE || MirrorSystem.getName(cm.simpleName) == OBJECT_WITH_OBSERVABLE) break;
+      if(cm == OBJECT || 
+          cm == OBSERVABLE ||
+          cm == CHANGE_NOTIFIER ||
+          MirrorSystem.getName(cm.simpleName) == OBJECT_WITH_CHANGE_NOTIFIER ||
+          MirrorSystem.getName(cm.simpleName) == OBJECT_WITH_OBSERVABLE) break;
       cm.declarations.forEach((symbol, mirror){
-        if(mirror is VariableMirror && !mirror.isPrivate && !mirror.isFinal && !mirror.isStatic){
+        if((mirror is VariableMirror && !mirror.isFinal && !mirror.isStatic 
+            || (mirror is MethodMirror && mirror.isGetter)) && !mirror.isPrivate){
           for(var meta in mirror.metadata){
             if(meta.reflectee is ObservableProperty){
               observables.add(symbol);
@@ -147,15 +159,9 @@ class _MutableFieldsScan {
         }
       });
     } 
-    _mutableFields = new UnmodifiableSetView(observables);
+    _observableFields = new UnmodifiableSetView(observables);
   }
-  
-  
-  _toGetterSymbol(symbol){
-    var symbolString = convertSymbolToString(symbol);
-    return new Symbol(symbolString.substring(0, symbolString.length-1));
-  }
-  
+ 
 }
 
 class _ObjectBinding {
@@ -166,13 +172,13 @@ class _ObjectBinding {
   StreamSubscription _sub;
   Map<Symbol,dynamic> _bindings = {};
 
-  _ObjectBinding(path, observable, sink){
+  _ObjectBinding(String path, Observable observable, EventSink sink){
     _LOGGER.finest('_Binding ${path}');
     
     var mirror = reflect(observable);
-    var scan = new _MutableFieldsScan(mirror.type);
+    var scan = new _ObservableFieldsScan(mirror.type);
     
-    scan.mutableFields.forEach((s){
+    scan.observableFields.forEach((s){
       
       //set initial bindings
       var value = mirror.getField(s).reflectee;
@@ -226,10 +232,10 @@ class _ListBinding {
   
   StreamSubscription _sub;
   
-  _ListBinding(path, observable, sink){
+  _ListBinding(String path, ObservableList observable, EventSink sink){
     _LOGGER.finest('_ListBinding ${path}');
     var mirror = reflect(observable);
-    _sub = observable.changes.listen((crs){
+    _sub = observable.listChanges.listen((crs){
       List records = [];
         for(var cr in crs){
           if(cr is ListChangeRecord){
@@ -258,6 +264,8 @@ class _ListBinding {
  */
 class ObjectPatchObserver {
   
+  static final _LOGGER = new Logger('ObjectPatchObserver');
+  
   StreamController _changes;
   
   final Observable observable;
@@ -273,7 +281,10 @@ class ObjectPatchObserver {
   Stream get changes => _changes.stream;
   
   _observed(){
-    _binding = _bindingFor('/',observable, _changes);    
+    var watch = new Stopwatch()..start();
+    _binding = _bindingFor('/',observable, _changes);   
+    watch.stop();
+    _LOGGER.finest('_observed [${observable.runtimeType}] in ${watch.elapsedMilliseconds} ms');
   }
   
   _unobserved(){
@@ -282,12 +293,14 @@ class ObjectPatchObserver {
   
 }
 
-_bindingFor(path, Observable observable, sink){
+_bindingFor(String path, Observable observable, sink){
   if(observable is ObservableList){
     return new _ListBinding(path,observable, sink);
   } else if(observable is Observable){
     return new _ObjectBinding(path,observable, sink);
-  }   
+  } else {
+    throw new ArgumentError('Observable is not observable');
+  }
 }
 
 class _Node {

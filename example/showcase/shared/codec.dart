@@ -69,21 +69,21 @@ class EverydayShowcaseCodecMixin implements Codec<Object,String>{
 class ProfileRule extends CustomRule {
   bool appliesTo(instance, Writer w) => instance.runtimeType == Profile;
   getState(Profile instance) => [instance.key, instance.addressAs, instance.bornOn, instance.fullName, instance.contactInfo];
-  create(state) => new Profile(key:state[0], addressAs:state[1], bornOn:state[2], fullName: state[3], contactInfo:state[4]);
+  create(state) => new Profile.from(key:state[0], addressAs:state[1], bornOn:state[2], fullName: state[3], contactInfo:state[4]);
   setState(instance, List state) => {};
 }
 
 class ContactInfoRule extends CustomRule {
   bool appliesTo(instance, Writer w) => instance.runtimeType == ContactInfo;
   getState(ContactInfo instance) => [instance.phone, instance.email, instance.mailingAddress];
-  create(state) => new ContactInfo(phone:state[0], email:state[1], mailingAddress: state[2]);
+  create(state) => new ContactInfo.from(phone:state[0], email:state[1], mailingAddress: state[2]);
   setState(instance, List state) => {};
 }
 
 class AddressRule extends CustomRule {
   bool appliesTo(instance, Writer w) => instance.runtimeType == Address;
   getState(Address instance) => [instance.streetOrBox, instance.city, instance.stateOrRegion, instance.postalCode];
-  create(state) => new Address(streetOrBox:state[0], city:state[1], stateOrRegion: state[2], postalCode:state[3]);
+  create(state) => new Address.from(streetOrBox:state[0], city:state[1], stateOrRegion: state[2], postalCode:state[3]);
   setState(instance, List state) => {};
 }
 

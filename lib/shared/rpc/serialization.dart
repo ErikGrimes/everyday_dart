@@ -4,37 +4,39 @@
 
 library everyday.shared.rpc.serialization;
 
+import "dart:core" hide Invocation;
+
 import 'package:serialization/serialization.dart';
 
 import 'messages.dart';
 import 'invoker.dart';
 
 configure(Serialization serialization){
-  serialization.addRule(new CallRule());
+  serialization.addRule(new InvocationRule());
   serialization.addRule(new InvocationTypeRule());
-  serialization.addRule(new CallResultRule());
-  serialization.addRule(new CallErrorRule());
+  serialization.addRule(new InvocationResultRule());
+  serialization.addRule(new InvocationErrorRule());
 }
 
-class CallRule extends CustomRule {
-  bool appliesTo(instance, Writer w) => instance.runtimeType == Call;
+class InvocationRule extends CustomRule {
+  bool appliesTo(instance, Writer w) => instance.runtimeType == Invocation;
   getState(instance) => [instance.callId, instance.endpoint,  instance.method, instance.invocationType, instance.positional, instance.named];
-  create(state) => new Call(state[0], state[1], state[2], state[3], positional:state[4], named:state[5]);
-  setState(Call a, List state) => {};
+  create(state) => new Invocation(state[0], state[1], state[2], state[3], positional:state[4], named:state[5]);
+  setState(Invocation a, List state) => {};
 }
 
-class CallResultRule extends CustomRule {
-  bool appliesTo(instance, Writer w) => instance.runtimeType == CallResult;
+class InvocationResultRule extends CustomRule {
+  bool appliesTo(instance, Writer w) => instance.runtimeType == InvocationResult;
   getState(instance) => [instance.callId, instance.data];
-  create(state) => new CallResult(state[0], state[1]);
-  setState(CallResult a, List state) => {};
+  create(state) => new InvocationResult(state[0], state[1]);
+  setState(InvocationResult a, List state) => {};
 }
 
-class CallErrorRule extends CustomRule {
-  bool appliesTo(instance, Writer w) => instance.runtimeType == CallError;
+class InvocationErrorRule extends CustomRule {
+  bool appliesTo(instance, Writer w) => instance.runtimeType == InvocationError;
   getState(instance) => [instance.callId, instance.error];
-  create(state) => new CallError(state[0], state[1]);
-  setState(CallError a, List state) => {};
+  create(state) => new InvocationError(state[0], state[1]);
+  setState(InvocationError a, List state) => {};
 }
 
 class InvocationTypeRule extends CustomRule {
@@ -44,13 +46,12 @@ class InvocationTypeRule extends CustomRule {
     switch(state[0]){
       case 0:
         return InvocationType.INVOKE;
-      break;
       case 1:
         return InvocationType.GET;
-      break;
       case 2:
         return InvocationType.SET;
-      break;
+      default:
+        throw new StateError('Unknown InvocationType [${state[0]}]');
     }
   }
   setState(InvocationType a, List state) => {};

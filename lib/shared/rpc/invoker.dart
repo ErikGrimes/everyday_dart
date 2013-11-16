@@ -17,5 +17,5 @@ class InvocationType {
 }
 
 abstract class Invoker {
-  Future call(String target, String method, InvocationType invocationType, {List positional, Map named, Duration timeout});
+  Future invoke(String target, String method, InvocationType invocationType, {List positional, Map named, Duration timeout});
 }

@@ -60,6 +60,9 @@ class EverydayShowcase extends PolymerElement {
   
   @observable
   List profileBuffer = [];
+  
+  @observable
+  String url;
 
   List profileChanged = [];
   
@@ -84,6 +87,8 @@ class EverydayShowcase extends PolymerElement {
     });
     
     super.enteredView();
+    
+    url = 'ws://' + window.location.hostname + ':8000/websocket';
     
     _bindPlaces();
     

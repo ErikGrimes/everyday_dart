@@ -30,7 +30,8 @@
     
   <everyday-websocket 
     id='socket' 
-    url='ws://localhost:8080'
+    auto
+    url='{{url}}'
     on-everydaySocketOffline='{{setOffline}}'
     on-everydaySocketOnline='{{setOnline}}'>
   </everyday-websocket>     

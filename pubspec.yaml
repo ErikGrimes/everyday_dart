@@ -12,6 +12,13 @@ dependencies:
   serialization: '>=0.9.0 < 0.10.0'
 dev_dependencies:
   unittest: '>=0.9.0 < 0.10.0'
+<<<<<<< HEAD
 transformers:
 - observe:
     files:
+=======
+#transformers:
+#- polymer:
+#    entry_points:
+#    - web/client/index.html
+>>>>>>> 73731dd5a99f1f0eda02e54256786fd44cb78098

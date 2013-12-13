@@ -11,6 +11,7 @@ import 'package:polymer/polymer.dart';
 import 'package:logging/logging.dart';
 
 import 'package:everyday_dart/client/io/everyday_socket.dart';
+import 'package:everyday_dart/shared/async/future.dart';
 
 @CustomTag('everyday-websocket')
 class EverydayWebsocket extends PolymerElement 
@@ -28,7 +29,7 @@ class EverydayWebsocket extends PolymerElement
   
   @published
   bool auto = false;
- 
+  
   @published
   String url;
   
@@ -45,15 +46,13 @@ class EverydayWebsocket extends PolymerElement
   enteredView(){
     
     super.enteredView();
-    
-    if(auto){
+    if(this.auto){
       start();  
     }
   }
   
   leftView(){
     stop();
-    
     super.leftView();
     
   }
@@ -74,9 +73,17 @@ class EverydayWebsocket extends PolymerElement
     _unconfigure();
   }
   
+  autoChanged(oldValue){
+    if(this.auto && !this.isStarted){
+      start();
+    }
+  }
+  
   urlChanged(oldValue){
-    _unconfigure();
-    _configure();
+    if(this.isStarted){
+      _unconfigure();
+      _configure();
+    }
   }
   
   reconnectDelayChanged(oldValue){
@@ -101,14 +108,19 @@ class EverydayWebsocket extends PolymerElement
     _closeSocket();
   }
   
+  int count = 0;
+  
   _queueConnect(Duration delay){
+ 
     _websocket = null;
     new Timer(delay,(){
       _LOGGER.finest('Connecting to $url');
       _connect(url, _connectTimeout).then((websocket){
         _LOGGER.finest('Connected to $url');
         _websocket = websocket;
-        _websocket.onMessage.listen((data){fireMessage(data.data);});
+        _websocket.onMessage.listen((data){
+          
+          fireMessage(data.data);});
         _websocket.onError.listen((error){    
           fireError(EverydaySocket.RAWSOCKET_ERROR);
           fireOffline();
@@ -139,15 +151,8 @@ class EverydayWebsocket extends PolymerElement
   
   static Future _connect(String url, Duration timeout){
     var websocket = new WebSocket(url); 
-    var completer = new Completer();
-    if(timeout != null){
-      var timer =  new Timer(timeout, () {
-        if(!completer.isCompleted){
-          completer.completeError(EverydaySocket.CONNECT_TIMED_OUT);
-        }
-      });   
-    }
-    
+    var completer = new TimedCompleter(timeout);
+   
     List _subs = [];
     
     _subs.add(websocket.onError.listen((event){

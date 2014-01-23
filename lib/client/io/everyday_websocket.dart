@@ -119,7 +119,6 @@ class EverydayWebsocket extends PolymerElement
         _LOGGER.finest('Connected to $url');
         _websocket = websocket;
         _websocket.onMessage.listen((data){
-          
           fireMessage(data.data);});
         _websocket.onError.listen((error){    
           fireError(EverydaySocket.RAWSOCKET_ERROR);

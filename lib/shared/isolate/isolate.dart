@@ -33,7 +33,7 @@ class IsolateChannel extends Stream implements StreamSink {
   
   static Future<IsolateChannel> connect(SendPort connectTo){
     ReceivePort thisPort = new ReceivePort();
-    connectTo.send('connect', thisPort.toSendPort());
+    connectTo.send({'connect': thisPort.sendPort});
     return new Future.value(new IsolateChannel._(thisPort, connectTo, 'connect'));
    
   }

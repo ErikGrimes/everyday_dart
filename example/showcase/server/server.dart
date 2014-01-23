@@ -56,7 +56,7 @@ _bindServerSocket(){
 _listenForRequests(socket){
     HttpServer server = new HttpServer.listenOn(socket);
     server.transform(new eio.WebSocketTransformer())
-      .transform(new eio.HandleInCurrentIsolateTransformer(
+      .transform(new eio.CurrentIsolateTransformer(
           new EverydayShowcaseCodec(), 
           new EverydayShowcaseMessageHandlerFactory()))
             .listen((disposer){
@@ -64,15 +64,15 @@ _listenForRequests(socket){
 }
 
 
-class EverydayShowcaseTransferableMessageHandlerFactory implements TransferableMessageHandlerFactory {
+class EverydayShowcaseTransferableMessageHandlerFactory implements MessageHandlerContainer {
   
-  Future<Transferable<MessageHandler>> create() {
+  Future<TransferableFactory<MessageHandler>> create() {
     return new Future.value(new EverydayShowcaseTransferableMessageHandler());  
   }
   
 }
 
-class EverydayShowcaseMessageHandlerFactory implements MessageHandlerFactory {
+class EverydayShowcaseMessageHandlerFactory implements MessageHandlerContainer {
   
   Future<MessageHandler> create() {
     return new EverydayShowcaseTransferableMessageHandler().revive();
@@ -109,7 +109,7 @@ abstract class EverydayShowcaseClientMixin {
   }
 }
 
-class EverydayShowcaseTransferableMessageHandler extends Object with EverydayShowcaseClientMixin implements Transferable<MessageHandler> {
+class EverydayShowcaseTransferableMessageHandler extends Object with EverydayShowcaseClientMixin implements TransferableFactory<MessageHandler> {
   
   static final Logger _LOGGER = new Logger('everyday.showcase.EverydayShowcaseTransferableMessageHandler');
   

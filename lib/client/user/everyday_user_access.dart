@@ -24,6 +24,9 @@ class EverydayUserAccess extends PolymerElement {
   String password = '';
   
   @published
+  bool autocomplete = false;
+  
+  @published
   UserService service;
   
   EverydayUserAccess.created() : super.created();

@@ -14,6 +14,6 @@ abstract class MessageHandler<T> implements Stream, StreamSink {
 
 abstract class MessageHandlerContainer {
   Future start();
-  Future attach(Stream inbound, StreamSink outbound);
+  Stream attach(Stream inbound);
   stop();
 }

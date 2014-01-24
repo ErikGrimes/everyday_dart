@@ -36,7 +36,14 @@ class ConverterStream extends Stream implements StreamConsumer {
     return new Future.value();
   }
 
-  StreamSubscription listen(void onData(event), {void onError(error), void onDone(), bool cancelOnError}) {
+  /*
+  StreamSubscription listen(void onData(event), {void onError(error, [st]), void onDone(), bool cancelOnError}) {
+    return _controller.stream.listen(onData, onError: onError, onDone: onDone, cancelOnError: cancelOnError);
+  }
+  */
+
+  @override
+  StreamSubscription listen(void onData(event), {Function onError, void onDone(), bool cancelOnError}) {
     return _controller.stream.listen(onData, onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
 }

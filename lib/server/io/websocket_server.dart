@@ -1,7 +1,8 @@
 library everyday.server.io.websocket;
 
 import 'dart:async';
-import 'dart:io' as io;
+import 'dart:io';
+import 'dart:isolate';
 
 import 'package:logging/logging.dart';
 import '../../server/io/message_handler.dart';
@@ -21,16 +22,15 @@ class WebSocketServerSettings {
   static final String DISABLE_SSL_KEY = 'disable_ssl';
 
   static final String ENABLE_ISOLATE_POOL_KEY= 'enable_isolate_pool';
-  static final String DEFAULT_ENABLE_ISOLATE_POOL = 'false';
   
   static final String MAX_CLIENTS_PER_ISOLATE_KEY= 'max_clients_isolate';
   static final String DEFAULT_MAX_CLIENTS_PER_ISOLATE  = null;
   
-  static final String MIN_ISOLATE_POOL_SIZE_KEY= 'min_isolate_pool_size';
-  static final String DEFAULT_MIN_ISOLATE_POOL_SIZE = '0';
+  static final String MIN_ISOLATES_KEY= 'min_isolates';
+  static final String DEFAULT_MIN_ISOLATES = '0';
 
-  static final String MAX_ISOLATE_POOL_SIZE_KEY= 'max_isolate_pool_size';
-  static final String DEFAULT_MAX_ISOLATE_POOL_SIZE = '1';
+  static final String MAX_ISOLATES_KEY= 'max_isolates';
+  static final String DEFAULT_MAX_ISOLATES = '1';
 
   Map<String, String> _args;
   
@@ -65,7 +65,7 @@ class WebSocketServerSettings {
   
 
   bool get enableIsolatePool {
-    return _args[ENABLE_ISOLATE_POOL_KEY] != null ? (_args[ENABLE_ISOLATE_POOL_KEY] == 'true' ? true : false): false;
+    return _args[ENABLE_ISOLATE_POOL_KEY] != null ? (_args[ENABLE_ISOLATE_POOL_KEY] == 'true' ? true : false): true;
   }
   
   int get maxClientsPerIsolate {
@@ -73,11 +73,11 @@ class WebSocketServerSettings {
   }
   
   int get minIsolatePoolSize {
-    return _args[MIN_ISOLATE_POOL_SIZE_KEY] != null ? int.parse(_args[MIN_ISOLATE_POOL_SIZE_KEY]) : DEFAULT_MIN_ISOLATE_POOL_SIZE;
+    return _args[MIN_ISOLATES_KEY] != null ? int.parse(_args[MIN_ISOLATES_KEY]) : DEFAULT_MIN_ISOLATES;
   }
   
   int get maxIsolatePoolSize {
-    return _args[MAX_ISOLATE_POOL_SIZE_KEY] != null ? int.parse(_args[MAX_ISOLATE_POOL_SIZE_KEY]) : DEFAULT_MAX_ISOLATE_POOL_SIZE;
+    return _args[MAX_ISOLATES_KEY] != null ? int.parse(_args[MAX_ISOLATES_KEY]) : DEFAULT_MAX_ISOLATES;
   }
 }
 
@@ -95,7 +95,7 @@ class WebSocketServer  {
     
     var containerCreated;
     if(settings.enableIsolatePool){
-      throw new UnimplementedError();
+      containerCreated = new Future.value(new IsolatePoolMessageHandlerContainer(factory));
     }else {
       containerCreated = factory.create();
     }
@@ -122,30 +122,30 @@ class WebSocketServer  {
   
   static Future _bindHttpServer(WebSocketServerSettings _settings){
     if(_settings.disableSsl){
-      return io.HttpServer.bind(_settings.listenOnAddress, _settings.listenOnPort);
+      return HttpServer.bind(_settings.listenOnAddress, _settings.listenOnPort);
     }else {
-      io.SecureSocket.initialize(database: _settings.certDb);
-      return io.HttpServer.bindSecure(_settings.listenOnAddress, _settings.listenOnPort, 
+      SecureSocket.initialize(database: _settings.certDb);
+      return HttpServer.bindSecure(_settings.listenOnAddress, _settings.listenOnPort, 
           certificateName: _settings.certName);    
     }
   }
 }
 
-class _WebSocketTransformSink implements EventSink<io.HttpRequest> {
+class _WebSocketTransformSink implements EventSink<HttpRequest> {
   static final Logger _LOGGER = new Logger('everyday.server.io.websocket_transformer');
   
-  final EventSink<io.WebSocket> _outputSink;
+  final EventSink<WebSocket> _outputSink;
   
   bool _discardRegular;
   
   _WebSocketTransformSink(this._outputSink, this._discardRegular);
 
-  void add(io.HttpRequest request) {
-    if(io.WebSocketTransformer.isUpgradeRequest(request)){
+  void add(HttpRequest request) {
+    if(WebSocketTransformer.isUpgradeRequest(request)){
       _LOGGER.info('Upgrading websocket');
       _setResponseHeaders(request.response);
-      io.WebSocketTransformer.upgrade(request)
-        .then((io.WebSocket websocket){
+      WebSocketTransformer.upgrade(request)
+        .then((WebSocket websocket){
           //websocket.pingInterval = new Duration(seconds:5);
 
           _outputSink.add(websocket);})
@@ -154,7 +154,7 @@ class _WebSocketTransformSink implements EventSink<io.HttpRequest> {
             _outputSink.add(error);
           });
    }else if(_discardRegular){
-     request.response.statusCode = io.HttpStatus.NOT_FOUND;
+     request.response.statusCode = HttpStatus.NOT_FOUND;
      request.response.close();
    }
   }
@@ -162,7 +162,7 @@ class _WebSocketTransformSink implements EventSink<io.HttpRequest> {
   void addError(e, [st]) => _outputSink.addError(e, st);
   void close() => _outputSink.close();
   
-  void _setResponseHeaders(io.HttpResponse res) {
+  void _setResponseHeaders(HttpResponse res) {
     res.headers.add("Access-Control-Allow-Origin", "*, ");
     res.headers.add("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
     res.headers.add("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
@@ -170,17 +170,123 @@ class _WebSocketTransformSink implements EventSink<io.HttpRequest> {
   
 }
 
-class WebSocketTransformer implements StreamTransformer<io.HttpRequest,io.WebSocket> {
+class _WebSocketTransformer implements StreamTransformer<HttpRequest,WebSocket> {
   
   bool _discardRegular;
   
-  WebSocketTransformer([discardRegular = true]): this._discardRegular = discardRegular;
+  _WebSocketTransformer([discardRegular = true]): this._discardRegular = discardRegular;
 
-  Stream<io.WebSocket> bind(Stream<io.HttpRequest> stream) =>
-    new Stream<io.WebSocket>.eventTransformed(
+  Stream<WebSocket> bind(Stream<HttpRequest> stream) =>
+    new Stream<WebSocket>.eventTransformed(
         stream,
         (EventSink sink) => new _WebSocketTransformSink(sink, _discardRegular));
   
 }
 
 
+class _Hello {
+  
+  final SendPort replyTo;
+  final TransferableFactory factory;
+  
+  _Hello(this.replyTo, this.factory);
+  
+}
+
+class _Online {
+  final SendPort replyTo;
+  _Online(this.replyTo);
+}
+
+class _GoodBye {
+  
+}
+
+class _Message {
+  final dynamic data;
+  _Message(this.data);
+}
+
+class _IsolateInfo {
+  
+}
+
+class IsolatePoolMessageHandlerContainer implements MessageHandlerContainer {
+  
+  int _maxClientsPerIsolate;
+  int _minIsolates;
+  int _maxIsolates;
+  TransferableFactory<MessageHandlerContainer> _factory;
+  List _available = [];
+  List _isolates = [];
+  
+  IsolatePoolMessageHandlerContainer(this._factory,{maxClientsPerIsolate:null, minIsolates:1, maxIsolates:1}) : 
+    _maxClientsPerIsolate = maxClientsPerIsolate, 
+    _minIsolates = minIsolates, _maxIsolates = minIsolates;
+  
+  @override
+  Future attach(Stream inbound, StreamSink outbound) {
+    // TODO: implement attach
+    // 1. Find an available isolate
+    // 2. Forward messages
+  }
+
+  @override
+  Future start() {
+    var completer = new Completer();
+    for(int i=0; i< _minIsolates;i++){
+      var me = new ReceivePort();
+      Isolate.spawn(_handlerIsolate, new _Hello(me.sendPort, _factory)).then((isolate){
+     //   print('spawned');
+        me.first.then((msg){
+      //    print('first');
+          _isolates.add(msg);
+          _available.add(msg);
+          if(_available.length >= _minIsolates){
+            completer.complete();
+      //      print('online');
+          }
+        });
+     
+      });
+    
+    }
+    return completer.future;
+  }
+
+  @override
+  stop() {
+    for(var i in _isolates){
+      i.send();
+    }
+  }
+}
+
+_handlerIsolate(message){
+  var me = new ReceivePort();
+  var hello = message as _Hello;
+  
+  hello.factory.create().then((MessageHandlerContainer container){
+ //  print('created');
+    container.start().then((_){
+      var inbound = new StreamController();
+      var outbound = new StreamController();
+     container.attach(inbound.stream, outbound);
+      
+      me.listen((data){
+        if(data is _Message){
+          inbound.add(_Message.data);
+        }else {
+          container.stop();
+        }
+      });
+     // print('online');
+      hello.replyTo.send(new _Online(me.sendPort));
+      
+    });
+      
+    
+  });
+  
+  
+}

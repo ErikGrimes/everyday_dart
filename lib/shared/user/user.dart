@@ -10,6 +10,7 @@ import 'dart:async';
 //TODO have a look at http://shiro.apache.org/ and other pleasant security frameworks
 abstract class UserService {
   Future<User> signIn(AuthToken token, [timeout]);
+  Future signOut(AuthToken token);
 }
 
 class User {

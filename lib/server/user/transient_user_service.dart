@@ -23,4 +23,9 @@ class TransientUserService implements UserService {
     return completer.future;
   }
   
+
+  @override
+  Future signOut(AuthToken token) {
+    return new Future.value();
+  }
 }

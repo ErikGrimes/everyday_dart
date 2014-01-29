@@ -1,7 +1,6 @@
 library everyday.server.io.websocket;
 
 import 'dart:async';
-import 'dart:collection';
 import 'dart:io';
 import 'dart:isolate';
 
@@ -96,7 +95,7 @@ class WebSocketServer  {
     
     var containerCreated;
     if(settings.enableIsolatePool){
-      containerCreated = new Future.value(new IsolatePoolMessageHandlerContainer(factory));
+      containerCreated = new Future.value(new _IsolatePoolMessageHandlerContainer(factory));
     }else {
       containerCreated = factory.create();
     }
@@ -105,11 +104,13 @@ class WebSocketServer  {
       container.start().then((_){
         _bindHttpServer(settings).then((httpServer){
           logger.info('Server bound');
-          httpServer.transform(new WebSocketTransformer()).listen((WebSocket websocket){
-            container.attach(websocket).pipe(websocket).then((_){
-              if(websocket.readyState == WebSocket.OPEN){
-                websocket.close();
-              }
+          httpServer.transform(new WebSocketTransformer()).listen((WebSocket websocket){;
+            container.attach(websocket).then((stream){
+              stream.pipe(websocket).then((_){
+                if(websocket.readyState == WebSocket.OPEN){
+                  websocket.close();
+                }
+              });
             });
           });
           completer.complete(new WebSocketServer._(container, logger));
@@ -120,6 +121,8 @@ class WebSocketServer  {
     return completer.future;
       
   }
+  
+ 
   
   close(){
     _container.stop();
@@ -223,75 +226,45 @@ class _Cancel {
   _Cancel(this.client);
 }
 
-class _IsolateInfo implements Comparable<_IsolateInfo> {
+/* 
+ * TODO Look for a more general purpose approach to isolates.
+ */
+class _IsolatePoolMessageHandlerContainer implements MessageHandlerContainer {
   
-  final SendPort replyTo;
-  final ReceivePort receiveFrom;
-  
-  Map<String, StreamSink> clients = new Map<String, StreamSink>();
- 
-  _IsolateInfo(this.receiveFrom, this.replyTo);
-
-  @override
-  int compareTo(_IsolateInfo other) {
-    return this.clients.length.compareTo(other.clients.length); 
-  }
-}
-
-class IsolatePoolMessageHandlerContainer implements MessageHandlerContainer {
+  List<_PoolIsolate> _isolates = [];
   
   int _maxClientsPerIsolate;
   int _minIsolates;
   int _maxIsolates;
+
   TransferableFactory<MessageHandlerContainer> _factory;
-  Set<_IsolateInfo> _isolates = new SplayTreeSet<_IsolateInfo>();
   
-  IsolatePoolMessageHandlerContainer(this._factory,{maxClientsPerIsolate:null, minIsolates:1, maxIsolates:1}) : 
+  _IsolatePoolMessageHandlerContainer(this._factory,{maxClientsPerIsolate:null, minIsolates:1, maxIsolates:1}) : 
     _maxClientsPerIsolate = maxClientsPerIsolate, 
     _minIsolates = minIsolates, _maxIsolates = minIsolates;
   
   @override
-  Stream attach(Stream target) {
-    // TODO: implement attach
-    // 1. Find an available isolate
-    var containerOut = new StreamController(); //this needs to be per client
-
-    if(_isolates.first.clients.length < _maxClientsPerIsolate){
-      _assign(_isolates.first, target, containerOut);
+  Future<Stream> attach(Stream inbound) {
+    var completer = new Completer();
+   if(_maxClientsPerIsolate == null || _leastClients.numClients < _maxClientsPerIsolate){
+      completer.complete(_leastClients.attach(inbound));
     }else if(_isolates.length < _maxIsolates){
-      var completer = new Completer();
-      _spawnIsolate().then((isolate){
+      _PoolIsolate.spawn(_factory).then((isolate){
         _isolates.add(isolate);
-        _assign(isolate, target, containerOut );
+        completer.complete(isolate.attach(inbound));    
       });
+
     }
-    // 2. Pipe messages
-    // 3. Detach when socket closes or isolate signals client is done
-    return containerOut.stream;
-  }
-  
-  _assign(_IsolateInfo isolate, Stream target, StreamSink destination){
-    var id = _nextId.toString();
-    isolate.clients[id] = destination;
-    target.listen((targetMessage){
-      isolate.replyTo.send(new _Forward(id, targetMessage));},
-      onDone:(){
-        isolate.clients.remove(id);
-      }); 
+   var list = new List();
+    return completer.future;
   }
 
-  int __nextId = 0;
-  
-  int get _nextId {
-    return __nextId++;
-  }
-  
   @override
   Future start() {
     var completer = new Completer();
     for(int i=0; i< _minIsolates;i++){
-      _spawnIsolate().then((info){
-        _isolates.add(info);
+      _PoolIsolate.spawn(_factory).then((_PoolIsolate isolate){
+        _isolates.add(isolate);
         if(_isolates.length >= _minIsolates){
           completer.complete();
         }
@@ -300,94 +273,148 @@ class IsolatePoolMessageHandlerContainer implements MessageHandlerContainer {
     return completer.future;
   }
 
-  Future<_IsolateInfo>_spawnIsolate(){
-    var receiveFrom = new ReceivePort();
-    var completer = new Completer();
-    Isolate.spawn(_containerIsolate, new _Hello(receiveFrom.sendPort, _factory)).then((isolate){
-      //   print('spawned');
-      receiveFrom.first.then((_Ready msg){
-        var info = new _IsolateInfo(receiveFrom, msg.replyTo);
-        receiveFrom.listen((isolateMessage){
-          if(isolateMessage is _Forward){
-            info.clients[isolateMessage.client].add(isolateMessage.data);
-          }else if(isolateMessage is _Cancel){
-            info.clients.remove(isolateMessage.client).close();           
-          }
-        });
-        completer.complete(info); 
-      });
-    });
-    return completer.future;
-  }
-  
   @override
   stop() {
     for(var i in _isolates){
-      i.replyTo.send(new _GoodBye());
+      i.dispose();
     }
     _isolates.clear();
   }
+  
+  _PoolIsolate get _leastClients {
+    var least = _isolates.first;
+    for(var current in _isolates){
+      if(current.numClients < least.numClients){
+        least = current;
+      }
+    }
+    return least;
+    
+  }
+  
 }
 
-class _ClientInfo {
-
-  StreamController inbound;
-  StreamSubscription containerSub;
-  bool isActive = false;
+class _PoolIsolate {
   
-  _ClientInfo();
+  ReceivePort _receiveFrom;
+  SendPort _replyTo;
+  Map<String, StreamSink> _clients = new Map<String, StreamSink>();
   
-}
-
-_containerIsolate(initialMessage){
-  var receiveFrom = new ReceivePort();
-  var hello = initialMessage as _Hello;
-  var clients = new Map<String, _ClientInfo>();
-
-  hello.factory.create().then((MessageHandlerContainer container){
- //  print('created');
-    container.start().then((_){
-      
-      receiveFrom.listen((poolMessage){
-        if(poolMessage is _Forward){
-          clients[poolMessage.client].inbound.add(poolMessage.data); 
-        } else if(poolMessage is _Assign){
-
-          var client = new _ClientInfo();
-          client.inbound = new StreamController();
-          var outbound = container.attach(client.inbound);
-          var sub = outbound.listen((containerMessage){
-            if(client.isActive) {
-              hello.replyTo.send(new _Forward(poolMessage.client,containerMessage));
-            }
-          }, onDone:(){
-            //container canceled
-            if(client.isActive){
-              client.isActive = false;
-              client.inbound.close();
-              clients.remove(poolMessage.client);
-              hello.replyTo.send(new _Cancel(poolMessage.client));
-            }
-          });
-          clients[poolMessage.client] = client;
-        } else if (poolMessage is _Cancel){
-          //server canceled
-          var client = clients.remove(poolMessage.client);
-          client.isActive = false;
-          client.containerSub.cancel();
-          client.inbound.close();
-        }
-        else  {
-          container.stop();
+  _PoolIsolate._(this._receiveFrom, this._replyTo);
+  
+  static Future<_PoolIsolate> spawn(_factory){
+    var receiveFrom = new ReceivePort();
+    var sub = receiveFrom.listen(null);
+    var completer = new Completer();
+    sub.onData((message){
+      var poolIsolate = new _PoolIsolate._(receiveFrom, (message as _Ready).replyTo);
+      sub.onData((message){
+        if(message is _Forward){
+          poolIsolate._clients[message.client].add(message.data);
+        }else if(message is _Cancel){
+          poolIsolate._clients.remove(message.client).close();           
         }
       });
-     // print('online');
-      hello.replyTo.send(new _Ready(receiveFrom.sendPort));
-      
+      completer.complete(poolIsolate); 
     });
-      
-    
-  });
+ 
+    Isolate.spawn(_poolIsolate, new _Hello(receiveFrom.sendPort, _factory)).catchError((error){
+      completer.completeError(error);
+    });
+ 
+    return completer.future;
+  }
   
+  Stream attach(Stream inbound){
+    var outbound = new StreamController();
+    var id = _nextId.toString();
+    _clients[id] = outbound;
+    inbound.listen((targetMessage){
+      _replyTo.send(new _Forward(id, targetMessage));},
+      onDone:(){
+        _replyTo.send(new _Cancel(id));
+        _clients.remove(id);
+      }); 
+    _replyTo.send(new _Assign(id));
+    return outbound.stream;
+  }
+  
+  
+  int __nextId = 0;
+  
+  int get _nextId {
+    return __nextId++;
+  }
+  
+  dispose(){
+    _replyTo.send(new _GoodBye());
+    for(var client in _clients){
+      client.close();
+    }
+    _clients.clear();
+  }
+  
+  int get numClients => _clients.length;
+  
+}
+
+class _PoolIsolateSpawn {
+ 
+
+  Map<String, StreamSink> _clients = new Map();
+
+  MessageHandlerContainer _container;
+  ReceivePort _receiveFrom;
+  SendPort _replyTo;
+  
+  _PoolIsolateSpawn(this._receiveFrom, this._replyTo, this._container);
+  
+  
+  static bind(initialMessage){
+    (initialMessage as _Hello).factory.create().then((container){
+      var receiveFrom = new ReceivePort();
+      var spawn = new _PoolIsolateSpawn(receiveFrom, (initialMessage as _Hello).replyTo, container);
+      spawn._replyTo.send(new _Ready(receiveFrom.sendPort));
+      receiveFrom.listen(spawn._handlePoolMessage);
+    }).catchError((error){
+      //TODO Handle errors
+      print('error');
+    });;
+  }
+  
+  _handlePoolMessage(message){
+    if(message is _Assign){
+      var pool = new StreamController();
+       _container.attach(pool.stream).then((Stream container){
+        container.listen((containerMessage){
+          _replyTo.send(new _Forward(message.client, containerMessage));
+        }, onDone:(){
+          var sink = _clients.remove(message.client);
+          if(sink != null){
+            sink.close();
+            _receiveFrom.sendPort.send(new _Cancel(message.client));
+          }
+        }); 
+       });    
+       _clients[message.client] = pool;
+    }else if(message is _Forward){
+        _clients[message.client].add(message.data);
+    }else if(message is _Cancel){
+      _clients.remove(message.client).close();
+      
+    }else if (message is _GoodBye){ 
+      _receiveFrom.close();
+      _clients.clear();
+      _container.stop();
+    }
+ 
+  }
+}
+
+
+
+_poolIsolate(initialMessage){
+    
+    _PoolIsolateSpawn.bind(initialMessage); 
   
 }
